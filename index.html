@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/javascript.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Coord json parser</title>
+  </head>
+  <body>
+    <h1>Завантаж JSON-файл</h1>
+    <input type="file" id="fileInput" accept=".json" />
+    <label for="firstNum">З якого нумеровати:</label>
+    <input type="number" name="firstNum" id="firstNum" value="1" min="0" />
+
+    <pre class="output" id="output"></pre>
+
+    <button type="button" id="saveBtn" style="display: none">
+      Зберегти як .txt
+    </button>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
