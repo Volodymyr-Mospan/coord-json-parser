@@ -1,6 +1,3 @@
-// import javascriptLogo from './javascript.svg'
-// import viteLogo from '/vite.svg'
-// import { setupCounter } from './counter.js'
 import "./style.css";
 
 import { saveAs } from "file-saver";
@@ -12,7 +9,7 @@ let file;
 
 fileInput.addEventListener("change", onReadFile);
 firstNum.addEventListener("change", onChangeNumber);
-saveBtn.addEventListener("click", onClick);
+saveBtn.addEventListener("click", onSaveBtn);
 
 function onReadFile(e) {
   file = e.target.files[0];
@@ -28,10 +25,10 @@ function onChangeNumber() {
   fileProcessing(file);
 }
 
-function onClick() {
+function onSaveBtn() {
   saveAs(
     new Blob([output.textContent]),
-    file.name.slice(0, file.name.indexOf("."))
+    `${file.name.slice(0, file.name.indexOf("."))}.txt`
   );
 }
 
