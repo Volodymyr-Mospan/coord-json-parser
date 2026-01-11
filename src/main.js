@@ -66,17 +66,33 @@ function fileProcessing(file) {
 }
 
 function createNXYH(coordJSON, starterNum) {
-  const coodrArray = coordJSON.coordinates[0][0];
-
-  if (!coodrArray) {
-    return;
+  function flattenCoords(coords) {
+    const res = [];
+    (function walk(c) {
+      if (!Array.isArray(c)) return;
+      if (c.length && typeof c[0] === "number") {
+        res.push(c);
+      } else {
+        for (const item of c) walk(item);
+      }
+    })(coords);
+    return res;
   }
 
-  return coodrArray.reduce((acc, point, i, arr) => {
-    return (acc += `${starterNum + i}, ${point[isXY ? 1 : 0]}, ${
-      point[isXY ? 0 : 1]
-    }, ${point[2] ? point[2] : "0.00"}${i === arr.length - 1 ? "" : "\n"}`);
-  }, "");
+  const coodrArray = flattenCoords(coordJSON.coordinates);
+
+  if (!coodrArray || coodrArray.length === 0) {
+    return "";
+  }
+
+  return coodrArray
+    .map((point, i, arr) => {
+      const x = point[isXY ? 1 : 0];
+      const y = point[isXY ? 0 : 1];
+      const z = point[2] ? point[2] : "0.00";
+      return `${starterNum + i}, ${x}, ${y}, ${z}`;
+    })
+    .join("\n");
 }
 
 // setupCounter(document.querySelector('#counter'))
