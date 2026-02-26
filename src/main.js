@@ -1,5 +1,10 @@
 import "./style.css";
 import { saveAs } from "file-saver";
+import { sk63ToWgs84 } from "./sc63toWGS/sc63zone4toWGS.js";
+// const point = wgs84ToSk63(50.368738, 31.327039);
+// const point = sk63ToWgs84(5573426.02, 4216638.92);
+const point = sk63ToWgs84(5469006.974, 4267842.221);
+console.log(point);
 
 const fileInput = document.getElementById("fileInput");
 const coordSys = document.querySelector(".coordinate_system");
@@ -43,7 +48,7 @@ function onChangeXYBtn() {
 function onSaveBtn() {
   saveAs(
     new Blob([output.textContent]),
-    `${file.name.slice(0, file.name.indexOf("."))}.txt`
+    `${file.name.slice(0, file.name.indexOf("."))}.txt`,
   );
 }
 
@@ -79,14 +84,19 @@ function createNXYH(coordJSON, starterNum) {
     return res;
   }
 
-  const coodrArray = flattenCoords(coordJSON.coordinates);
+  const coordArray = flattenCoords(coordJSON.coordinates);
+  const coordLength = coordArray.length;
 
-  if (!coodrArray || coodrArray.length === 0) {
+  if (!coordArray || !coordLength) {
     return "";
   }
 
-  return coodrArray
-    .map((point, i, arr) => {
+  if (deepEqual(coordArray[0], coordArray[coordLength - 1])) {
+    coordArray.pop();
+  }
+
+  return coordArray
+    .map((point, i) => {
       const x = point[isXY ? 1 : 0];
       const y = point[isXY ? 0 : 1];
       const z = point[2] ? point[2] : "0.00";
@@ -108,3 +118,21 @@ function createNXYH(coordJSON, starterNum) {
 //   ],
 //   properties: { coordSys: "SC63" },
 // };
+
+function deepEqual(a, b) {
+  if (a === b) return true;
+
+  if (a == null || typeof a != "object" || b == null || typeof b != "object")
+    return false;
+
+  let keysA = Object.keys(a),
+    keysB = Object.keys(b);
+
+  if (keysA.length != keysB.length) return false;
+
+  for (let key of keysA) {
+    if (!keysB.includes(key) || !deepEqual(a[key], b[key])) return false;
+  }
+
+  return true;
+}
