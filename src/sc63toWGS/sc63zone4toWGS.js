@@ -109,7 +109,7 @@ const params = multiply(inverse(N), U);
 // --- параметри
 const [dx, dy, dz, rx, ry, rz, m] = params.map((v) => v[0]);
 
-console.log("Helmert params:", { dx, dy, dz, rx, ry, rz, m });
+// console.log("Helmert params:", { dx, dy, dz, rx, ry, rz, m });
 
 // --- застосування
 export function sk63ToWgs84(x, y) {

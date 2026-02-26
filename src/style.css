@@ -1,5 +1,4 @@
-/* Reset */
-* {
+Reset * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -105,4 +104,10 @@ pre.output {
     font-size: 0.9rem;
     max-height: 300px;
   }
+}
+
+#map {
+  height: 180px;
+  width: 100%;
+  min-width: 300px;
 }
