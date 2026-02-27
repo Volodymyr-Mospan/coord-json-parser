@@ -1,17 +1,9 @@
 import proj4 from "proj4";
 import * as math from "mathjs";
 
-// --- WGS84
-const WGS84 = {
-  a: 6378137.0,
-  f: 1 / 298.257223563,
-};
-
-// --- Krasovsky (СК-63)
-const KRASS = {
-  a: 6378245.0,
-  f: 1 / 298.3,
-};
+// --- еліпсоїди
+const WGS84 = { a: 6378137.0, f: 1 / 298.257223563 };
+const KRASS = { a: 6378245.0, f: 1 / 298.3 };
 
 // --- допоміжні функції
 function geodeticToECEF(lat, lon, h, ell) {
@@ -110,7 +102,7 @@ const [dx, dy, dz, rx, ry, rz, m] = params.map((v) => v[0]);
 // console.log("Helmert params:", { dx, dy, dz, rx, ry, rz, m });
 
 // --- застосування
-export function sk63ToWgs84(coordArray = []) {
+export function sk63z4ToWgs84(coordArray = []) {
   const wgsArray = [];
   for (const [y, x] of coordArray) {
     const [lon, lat] = proj4("SK63", "WGS84", [y, x]);
