@@ -10,16 +10,20 @@ export function createMap(point, coordArray) {
     map.removeLayer(polygon);
   }
 
-  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    maxZoom: 19,
+  const osm = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 20,
     attribution:
       '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-  }).addTo(map);
-
-  const osm = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png");
+  });
   const esri = L.tileLayer(
     "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+    {
+      maxZoom: 20,
+      attribution: "&copy; Esri, Maxar, Earthstar Geographics",
+    },
   );
+
+  osm.addTo(map);
 
   L.control.layers({ Карта: osm, Супутник: esri }).addTo(map);
 
@@ -27,20 +31,3 @@ export function createMap(point, coordArray) {
   polygon = L.polygon(coordArray).addTo(map);
   polygon.bindPopup(point.map((coord) => coord.toFixed(8)).join(", "));
 }
-
-//   L.tileLayer(
-//     "http://www.google.cn/maps/vt?lyrs=s@189&gl=cn&x={x}&y={y}&z={z}",
-//     {
-//       maxZoom: 20,
-//       attribution:
-//         '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-//     },
-//   ).addTo(map);
-
-//   L.tileLayer(
-//     "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-//     {
-//       attribution: "&copy; Esri, Maxar, Earthstar Geographics",
-//       maxZoom: 19,
-//     },
-//   ).addTo(map);
