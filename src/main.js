@@ -7,6 +7,7 @@ import { sk63z4ToWgs84 } from "./sc63toWGS/sc63z4toWGS.js";
 
 const fileInput = document.getElementById("fileInput");
 const coordSys = document.querySelector(".coordinate_system");
+const coordOfArea = document.querySelector(".coordinate_of_area");
 const output = document.getElementById("output");
 const firstNum = document.getElementById("firstNum");
 const changeXYBtn = document.getElementById("changeXYBtn");
@@ -27,6 +28,7 @@ function onReadFile(e) {
 
   coordSys.style.color = "inherit";
   coordSys.style.display = "block";
+  coordOfArea.style.display = "block";
   changeXYBtn.style.display = "block";
   saveBtn.style.display = "block";
 
@@ -48,8 +50,6 @@ function onReadFile(e) {
           break;
       }
 
-      // const wgsArray = sk63z3ToWgs84(coordArray);
-
       console.log(wgsArray);
 
       const averegWGS = wgsArray.reduce(([latAcc, lonAcc], [lat, lon], i) => {
@@ -60,9 +60,9 @@ function onReadFile(e) {
         ];
       });
 
-      // map.eachLayer((layer) => {
-      //   map.removeLayer(layer);
-      // });
+      coordOfArea.textContent = averegWGS
+        .map((coord) => coord.toFixed(8))
+        .join(", ");
 
       createMap(averegWGS, wgsArray);
     })
@@ -73,7 +73,6 @@ function onReadFile(e) {
 
 function onChangeNumber() {
   if (!file) return;
-  setMapView();
   fileProcessing(file, coordSys, output, isXY);
 }
 
