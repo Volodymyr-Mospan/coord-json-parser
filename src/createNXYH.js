@@ -1,20 +1,5 @@
-export function createNXYH(coordJSON, starterNum, isXY) {
-  function flattenCoords(coords) {
-    const res = [];
-    (function walk(c) {
-      if (!Array.isArray(c)) return;
-      if (c.length && typeof c[0] === "number") {
-        res.push(c);
-      } else {
-        for (const item of c) walk(item);
-      }
-    })(coords);
-    return res;
-  }
-
-  const coordArray = flattenCoords(coordJSON.coordinates);
+export function createNXYH(coordArray, starterNum, isXY) {
   const coordLength = coordArray.length;
-
   if (!coordArray || !coordLength) {
     return "";
   }

@@ -110,25 +110,30 @@ const [dx, dy, dz, rx, ry, rz, m] = params.map((v) => v[0]);
 // console.log("Helmert params:", { dx, dy, dz, rx, ry, rz, m });
 
 // --- застосування
-export function sk63ToWgs84(x, y) {
-  const [lon, lat] = proj4("SK63", "WGS84", [y, x]);
-  const [X, Y, Z] = geodeticToECEF(lat, lon, 0, KRASS);
+export function sk63ToWgs84(coordArray = []) {
+  const wgsArray = [];
+  for (const [y, x] of coordArray) {
+    const [lon, lat] = proj4("SK63", "WGS84", [y, x]);
+    const [X, Y, Z] = geodeticToECEF(lat, lon, 0, KRASS);
 
-  const X2 = dx + (1 + m) * X + -rz * Y + ry * Z;
-  const Y2 = dy + rz * X + (1 + m) * Y + -rx * Z;
-  const Z2 = dz + -ry * X + rx * Y + (1 + m) * Z;
+    const X2 = dx + (1 + m) * X + -rz * Y + ry * Z;
+    const Y2 = dy + rz * X + (1 + m) * Y + -rx * Z;
+    const Z2 = dz + -ry * X + rx * Y + (1 + m) * Z;
 
-  // назад у геодезичні (ітерація)
-  const lon2 = Math.atan2(Y2, X2);
-  const p = Math.sqrt(X2 * X2 + Y2 * Y2);
+    // назад у геодезичні (ітерація)
+    const lon2 = Math.atan2(Y2, X2);
+    const p = Math.sqrt(X2 * X2 + Y2 * Y2);
 
-  let lat2 = Math.atan2(Z2, p * (1 - 0.00669438));
-  for (let i = 0; i < 5; i++) {
-    const N = 6378137 / Math.sqrt(1 - 0.00669438 * Math.sin(lat2) ** 2);
-    lat2 = Math.atan2(Z2, p * (1 - (0.00669438 * N) / N));
+    let lat2 = Math.atan2(Z2, p * (1 - 0.00669438));
+    for (let i = 0; i < 5; i++) {
+      const N = 6378137 / Math.sqrt(1 - 0.00669438 * Math.sin(lat2) ** 2);
+      lat2 = Math.atan2(Z2, p * (1 - (0.00669438 * N) / N));
+    }
+
+    wgsArray.push([(lat2 * 180) / Math.PI, (lon2 * 180) / Math.PI]);
   }
 
-  return [(lat2 * 180) / Math.PI, (lon2 * 180) / Math.PI];
+  return wgsArray;
 }
 
 // =================================================================

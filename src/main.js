@@ -1,6 +1,8 @@
 import "./style.css";
 import { saveAs } from "file-saver";
 import { fileProcessing } from "./fileProcessing.js";
+import { createMap, cratePolygon } from "./maps/leaflet/leaflet.js";
+import { sk63ToWgs84 } from "./sc63toWGS/sc63zone4toWGS.js";
 
 const fileInput = document.getElementById("fileInput");
 const coordSys = document.querySelector(".coordinate_system");
@@ -11,6 +13,7 @@ const saveBtn = document.getElementById("saveBtn");
 
 let file;
 let isXY = true;
+let parsedJSONCoord = null;
 
 fileInput.addEventListener("change", onReadFile);
 firstNum.addEventListener("change", onChangeNumber);
@@ -26,7 +29,24 @@ function onReadFile(e) {
   changeXYBtn.style.display = "block";
   saveBtn.style.display = "block";
 
-  fileProcessing(file, coordSys, output, isXY);
+  fileProcessing(file, coordSys, output, isXY)
+    .then((coordArray) => {
+      const wgsArray = sk63ToWgs84(coordArray);
+      console.log("🚀 ~ onReadFile ~ wgsArray:", wgsArray);
+      const averegWGS = wgsArray.reduce(([latAcc, lonAcc], [lat, lon], i) => {
+        if (i < wgsArray.length - 1) return [latAcc + lat, lonAcc + lon];
+        return [
+          (latAcc + lat) / wgsArray.length,
+          (lonAcc + lon) / wgsArray.length,
+        ];
+      });
+      console.log("🚀 ~ onReadFile ~ averegWGS:", averegWGS);
+      createMap(averegWGS, wgsArray);
+      // cratePolygon(wgsArray);
+    })
+    .catch((err) => {
+      parsedJSONCoord = null;
+    });
 }
 
 function onChangeNumber() {
