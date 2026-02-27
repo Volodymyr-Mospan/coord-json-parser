@@ -1,5 +1,5 @@
-// helmert_sc63_fit.js
 import proj4 from "proj4";
+import * as math from "mathjs";
 
 // --- WGS84
 const WGS84 = {
@@ -94,8 +94,6 @@ function inverse(m) {
 
 // --- ПІДКЛЮЧИ math.js у проєкті!
 // npm install mathjs
-
-import * as math from "mathjs";
 
 const AT = transpose(A);
 const N = multiply(AT, A);
