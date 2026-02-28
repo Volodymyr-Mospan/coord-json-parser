@@ -85,19 +85,7 @@ async function onCopyBtn() {
   const isAndroid = /Android/i.test(navigator.userAgent);
 
   if (isIOS) {
-    // відкриє Apple Maps
-    // url = `maps://?daddr=${lat},${lng}`;
-    const url = `https://waze.com/ul?ll=${lat},${lng}`;
-
-    if (navigator.share) {
-      await navigator.share({
-        title: "Маршрут",
-        text: "Відкрити в навігаторі",
-        url: url,
-      });
-    } else {
-      window.location.href = url;
-    }
+    window.location.href = `https://waze.com/ul?ll=${lat},${lng}`;
   } else if (isAndroid) {
     // дає вибір навігатора
     window.location.href = `geo:0,0?q=${lat},${lng}`;
