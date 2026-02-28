@@ -3,6 +3,7 @@ import { saveAs } from "file-saver";
 import { fileProcessing } from "./fileProcessing.js";
 import { createMap } from "./maps/leaflet/leaflet.js";
 import { sk63ToWgs84 } from "./sc63toWGS/transformFunctions.js";
+import { flattenCoords } from "./utilities/utilities.js";
 
 const fileInput = document.getElementById("fileInput");
 const coordSys = document.querySelector(".coordinate_system");
@@ -32,15 +33,21 @@ function onReadFile(e) {
   saveBtn.style.display = "block";
 
   fileProcessing(file, coordSys, output, isXY)
-    .then((coordArray) => {
-      let wgsArray = sk63ToWgs84(coordArray);
-      const averegWGS = wgsArray.reduce(([latAcc, lonAcc], [lat, lon], i) => {
-        if (i < wgsArray.length - 1) return [latAcc + lat, lonAcc + lon];
-        return [
-          (latAcc + lat) / wgsArray.length,
-          (lonAcc + lon) / wgsArray.length,
-        ];
-      });
+    .then(({ multiPolygon }) => {
+      let wgsArray = sk63ToWgs84(multiPolygon);
+      const flattenWGSCoords = flattenCoords(wgsArray);
+      console.log("🚀 ~ onReadFile ~ flattenWGSCoords:", flattenWGSCoords);
+
+      const averegWGS = flattenWGSCoords.reduce(
+        ([latAcc, lonAcc], [lat, lon], i) => {
+          if (i < flattenWGSCoords.length - 1)
+            return [latAcc + lat, lonAcc + lon];
+          return [
+            (latAcc + lat) / flattenWGSCoords.length,
+            (lonAcc + lon) / flattenWGSCoords.length,
+          ];
+        },
+      );
 
       coordOfArea.textContent = averegWGS
         .map((coord) => coord.toFixed(8))
@@ -77,6 +84,10 @@ function onSaveBtn() {
 //   type: "MultiPolygon",
 //   coordinates: [
 //     [
+//       [
+//         [3366088.8250000002, 5599893.7199999997],
+//         [3366096.8700000001, 5599890.7800000003],
+//       ],
 //       [
 //         [3366088.8250000002, 5599893.7199999997],
 //         [3366096.8700000001, 5599890.7800000003],

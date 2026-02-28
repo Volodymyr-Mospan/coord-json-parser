@@ -66,7 +66,15 @@ function preparationHelmertParams(points, proj4ZoneParam) {
 
 // --- основна функція/застосування
 export function sk63ToWgs84(coordArray) {
-  const numberOfZone = coordArray[0][0].toString()[0];
+  let numberOfZone = (function lookingZoneNumber(c) {
+    if (!Array.isArray(c)) return;
+    if (c.length && typeof c[0] === "number") {
+      return c.toString()[0];
+    } else {
+      if (Array.isArray(c[0])) return lookingZoneNumber(c[0]);
+    }
+  })(coordArray);
+
   let proj4ZoneParam;
   let helmertParams;
 
@@ -90,10 +98,20 @@ export function sk63ToWgs84(coordArray) {
       break;
   }
 
-  const wgsArray = [];
   const [dx, dy, dz, rx, ry, rz, m] = helmertParams;
 
-  for (const [y, x] of coordArray) {
+  const wgsMultiPolygon = (function createWGSMultiPolygon(c) {
+    if (c.length && typeof c[0] === "number") {
+      return transform(c);
+    }
+    if (Array.isArray(c[0])) {
+      return c.map((el) => createWGSMultiPolygon(el));
+    }
+  })(coordArray);
+
+  console.log("🚀 ~ createWGSMultiPolygon ~ wgsMultiPolygon:", wgsMultiPolygon);
+
+  function transform([y, x]) {
     const [lon, lat] = proj4(proj4ZoneParam, "WGS84", [y, x]);
     const [X, Y, Z] = geodeticToECEF(lat, lon, 0, KRASS);
 
@@ -112,8 +130,8 @@ export function sk63ToWgs84(coordArray) {
       lat2 = Math.atan2(Z2, p * (1 - (0.00669438 * N) / N));
     }
 
-    wgsArray.push([(lat2 * 180) / Math.PI, (lon2 * 180) / Math.PI]);
+    return [(lat2 * 180) / Math.PI, (lon2 * 180) / Math.PI];
   }
 
-  return wgsArray;
+  return wgsMultiPolygon;
 }
