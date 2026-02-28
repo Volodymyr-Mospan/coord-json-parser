@@ -5,7 +5,15 @@ import * as math from "mathjs";
 const WGS84 = { a: 6378137.0, f: 1 / 298.257223563 };
 const KRASS = { a: 6378245.0, f: 1 / 298.3 };
 
-// --- допоміжні функції
+// --- СК63 зона 4 (λ0 = 32°30')
+proj4.defs(
+  "SK63",
+  "+proj=tmerc +lat_0=0 +lon_0=32.5 +k=1 +x_0=4300000 +y_0=0 +ellps=krass +units=m +no_defs",
+);
+
+proj4.defs("WGS84", "+proj=longlat +datum=WGS84 +no_defs");
+
+// --- допоміжні функції - геодезичні → ECEF
 function geodeticToECEF(lat, lon, h, ell) {
   const a = ell.a;
   const f = ell.f;
@@ -28,7 +36,6 @@ function geodeticToECEF(lat, lon, h, ell) {
 
 // --- твої точки
 const points = [
-  // [lat, lon, X, Y]
   [51.494994, 31.159013, 5698903.784, 4206988.506],
   [51.525657, 32.500554, 5701461.986, 4300154.764],
   [51.678669, 33.900568, 5719414.881, 4396990.645],
@@ -39,12 +46,6 @@ const points = [
   [46.074748, 32.501527, 5095287.814, 4300231.941],
   [44.396419, 33.925787, 4909752.662, 4413706.609],
 ];
-
-// --- визначення проєкції СК63
-proj4.defs(
-  "SK63",
-  "+proj=tmerc +lat_0=0 +lon_0=32.5 +k=1 +x_0=4300000 +y_0=0 +ellps=krass +units=m +no_defs",
-);
 
 // --- підготовка ECEF масивів
 const A = [];
@@ -68,40 +69,19 @@ points.forEach(([lat, lon, X, Y]) => {
   L.push(Z1 - Z2);
 });
 
-// --- МНК: (AᵀA)^-1 AᵀL
-function transpose(m) {
-  return m[0].map((_, i) => m.map((row) => row[i]));
-}
+// --- рішення МНК: (AᵀA)^-1 AᵀL
+const AT = math.transpose(A);
+const N = math.multiply(AT, A);
+const U = math.multiply(AT, L);
 
-function multiply(a, b) {
-  return a.map((row) =>
-    b[0].map((_, j) => row.reduce((sum, val, k) => sum + val * b[k][j], 0)),
-  );
-}
-
-// простий інверс (через numeric stability — ок для 7x7)
-function inverse(m) {
-  return math.inv(m); // <-- потрібна math.js
-}
-
-// --- ПІДКЛЮЧИ math.js у проєкті!
-// npm install mathjs
-
-const AT = transpose(A);
-const N = multiply(AT, A);
-const U = multiply(
-  AT,
-  L.map((v) => [v]),
-);
-
-const params = multiply(inverse(N), U);
+const params = math.multiply(math.inv(N), U);
 
 // --- параметри
-const [dx, dy, dz, rx, ry, rz, m] = params.map((v) => v[0]);
+const [dx, dy, dz, rx, ry, rz, m] = params;
 
 // console.log("Helmert params:", { dx, dy, dz, rx, ry, rz, m });
 
-// --- застосування
+// --- основна функція/застосування
 export function sk63z4ToWgs84(coordArray = []) {
   const wgsArray = [];
   for (const [y, x] of coordArray) {
@@ -117,6 +97,7 @@ export function sk63z4ToWgs84(coordArray = []) {
     const p = Math.sqrt(X2 * X2 + Y2 * Y2);
 
     let lat2 = Math.atan2(Z2, p * (1 - 0.00669438));
+
     for (let i = 0; i < 5; i++) {
       const N = 6378137 / Math.sqrt(1 - 0.00669438 * Math.sin(lat2) ** 2);
       lat2 = Math.atan2(Z2, p * (1 - (0.00669438 * N) / N));

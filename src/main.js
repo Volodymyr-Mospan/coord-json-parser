@@ -2,8 +2,7 @@ import "./style.css";
 import { saveAs } from "file-saver";
 import { fileProcessing } from "./fileProcessing.js";
 import { createMap } from "./maps/leaflet/leaflet.js";
-import { sk63z3ToWgs84 } from "./sc63toWGS/sc63z3toWGS.js";
-import { sk63z4ToWgs84 } from "./sc63toWGS/sc63z4toWGS.js";
+import { sk63ToWgs84 } from "./sc63toWGS/transformFunctions.js";
 
 const fileInput = document.getElementById("fileInput");
 const coordSys = document.querySelector(".coordinate_system");
@@ -34,24 +33,7 @@ function onReadFile(e) {
 
   fileProcessing(file, coordSys, output, isXY)
     .then((coordArray) => {
-      const numberOfZone = coordArray[0][0].toString()[0];
-      let wgsArray = [];
-
-      switch (numberOfZone) {
-        case "3":
-          wgsArray = sk63z3ToWgs84(coordArray);
-          break;
-
-        case "4":
-          wgsArray = sk63z4ToWgs84(coordArray);
-          break;
-
-        default:
-          break;
-      }
-
-      console.log(wgsArray);
-
+      let wgsArray = sk63ToWgs84(coordArray);
       const averegWGS = wgsArray.reduce(([latAcc, lonAcc], [lat, lon], i) => {
         if (i < wgsArray.length - 1) return [latAcc + lat, lonAcc + lon];
         return [
