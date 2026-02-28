@@ -35,16 +35,15 @@ function onReadFile(e) {
   fileProcessing(file, coordSys, output, isXY)
     .then(({ multiPolygon }) => {
       let wgsArray = sk63ToWgs84(multiPolygon);
-      const flattenWGSCoords = flattenCoords(wgsArray);
-      console.log("🚀 ~ onReadFile ~ flattenWGSCoords:", flattenWGSCoords);
+      const flattenWGSArray = flattenCoords(wgsArray);
 
-      const averegWGS = flattenWGSCoords.reduce(
+      const averegWGS = flattenWGSArray.reduce(
         ([latAcc, lonAcc], [lat, lon], i) => {
-          if (i < flattenWGSCoords.length - 1)
+          if (i < flattenWGSArray.length - 1)
             return [latAcc + lat, lonAcc + lon];
           return [
-            (latAcc + lat) / flattenWGSCoords.length,
-            (lonAcc + lon) / flattenWGSCoords.length,
+            (latAcc + lat) / flattenWGSArray.length,
+            (lonAcc + lon) / flattenWGSArray.length,
           ];
         },
       );

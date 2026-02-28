@@ -109,8 +109,6 @@ export function sk63ToWgs84(coordArray) {
     }
   })(coordArray);
 
-  console.log("🚀 ~ createWGSMultiPolygon ~ wgsMultiPolygon:", wgsMultiPolygon);
-
   function transform([y, x]) {
     const [lon, lat] = proj4(proj4ZoneParam, "WGS84", [y, x]);
     const [X, Y, Z] = geodeticToECEF(lat, lon, 0, KRASS);
