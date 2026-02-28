@@ -10,14 +10,16 @@ const coordSys = document.querySelector(".coordinate_system");
 const coordOfArea = document.querySelector(".coordinate_of_area");
 const output = document.getElementById("output");
 const firstNum = document.getElementById("firstNum");
+const copyBtn = document.getElementById("copyCoords");
 const changeXYBtn = document.getElementById("changeXYBtn");
 const saveBtn = document.getElementById("saveBtn");
+const displayAtributes = document.querySelectorAll('[data-js="display"]');
 
 let file;
 let isXY = true;
-let parsedJSONCoord = null;
 
 fileInput.addEventListener("change", onReadFile);
+copyBtn.addEventListener("click", onCopyBtn);
 firstNum.addEventListener("change", onChangeNumber);
 changeXYBtn.addEventListener("click", onChangeXYBtn);
 saveBtn.addEventListener("click", onSaveBtn);
@@ -27,10 +29,7 @@ function onReadFile(e) {
   if (!file) return;
 
   coordSys.style.color = "inherit";
-  coordSys.style.display = "block";
-  coordOfArea.style.display = "block";
-  changeXYBtn.style.display = "block";
-  saveBtn.style.display = "block";
+  displayAtributes.forEach((el) => (el.style.display = "block"));
 
   fileProcessing(file, coordSys, output, isXY)
     .then(({ multiPolygon }) => {
@@ -57,6 +56,58 @@ function onReadFile(e) {
     .catch((err) => {
       parsedJSONCoord = null;
     });
+}
+
+async function onCopyBtn() {
+  const text = coordOfArea.textContent;
+  const [lat, lng] = coordOfArea.textContent.split(", ");
+
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch {
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    document.body.appendChild(textarea);
+
+    textarea.select();
+    textarea.setSelectionRange(0, 99999);
+
+    document.execCommand("copy");
+    document.body.removeChild(textarea);
+  }
+  copyBtn.textContent = "Скопійовано!";
+
+  setTimeout(() => {
+    copyBtn.textContent = "Копі";
+  }, 1500);
+
+  const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+  const isAndroid = /Android/i.test(navigator.userAgent);
+
+  if (isIOS) {
+    // відкриє Apple Maps
+    // url = `maps://?daddr=${lat},${lng}`;
+    const url = `https://waze.com/ul?ll=${lat},${lng}`;
+
+    if (navigator.share) {
+      await navigator.share({
+        title: "Маршрут",
+        text: "Відкрити в навігаторі",
+        url: url,
+      });
+    } else {
+      window.location.href = url;
+    }
+  } else if (isAndroid) {
+    // дає вибір навігатора
+    window.location.href = `geo:0,0?q=${lat},${lng}`;
+  } else {
+    // fallback (ПК)
+    window.open(
+      `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`,
+      "_blank",
+    );
+  }
 }
 
 function onChangeNumber() {

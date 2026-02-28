@@ -16,21 +16,38 @@
   <body>
     <h1>Завантаж JSON-файл</h1>
     <input type="file" id="fileInput" accept=".json" />
-    <p class="coordinate_system" style="display: none"></p>
+    <p class="coordinate_system" data-js="display" style="display: none"></p>
+
     <p>Координати ділянки:</p>
-    <b class="coordinate_of_area" style="display: none"></b>
+    <b class="coordinate_of_area" data-js="display" style="display: none"></b>
+    <button
+      id="copyCoords"
+      type="button"
+      data-js="display"
+      style="display: none"
+    >
+      Копі / Навігація
+    </button>
+
     <label for="firstNum">З якого нумеровати:</label>
     <input type="number" name="firstNum" id="firstNum" value="1" min="0" />
-    <button type="button" id="changeXYBtn" style="display: none">
+    <button
+      type="button"
+      id="changeXYBtn"
+      data-js="display"
+      style="display: none"
+    >
       X &lt; &gt; Y
     </button>
     <pre contenteditable="true" class="output" id="output"></pre>
 
-    <button type="button" id="saveBtn" style="display: none">
+    <button type="button" id="saveBtn" data-js="display" style="display: none">
       Зберегти як .txt
     </button>
 
     <div id="map"></div>
+
+    <p>Розробив: Моспан Володимир || версія: 0.3.7</p>
 
     <script type="module" src="/src/main.js"></script>
   </body>
