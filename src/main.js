@@ -78,7 +78,7 @@ async function onCopyBtn() {
   copyBtn.textContent = "Скопійовано!";
 
   setTimeout(() => {
-    copyBtn.textContent = "Копі";
+    copyBtn.textContent = "Копі / Навігація";
   }, 1500);
 
   const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
@@ -129,8 +129,6 @@ function onSaveBtn() {
   );
 }
 
-// setupCounter(document.querySelector('#counter'))
-// const jsonStructure = {
 //   type: "MultiPolygon",
 //   coordinates: [
 //     [
