@@ -1,8 +1,8 @@
 import "./style.css";
 import { saveAs } from "file-saver";
 import { fileProcessing } from "./fileProcessing.js";
-import { createMap } from "./maps/leaflet/leaflet.js";
-import { sk63ToWgs84 } from "./sc63toWGS/transformFunctions.js";
+import { drawMultiPolygon, initMap } from "./maps/google_maps/google_maps.js";
+import { sk63ToWgs84 } from "./sc_63_to_WGS/transformFunctions.js";
 import { flattenCoords } from "./utilities/utilities.js";
 
 const fileInput = document.getElementById("fileInput");
@@ -17,6 +17,8 @@ const displayAtributes = document.querySelectorAll('[data-js="display"]');
 
 let file;
 let isXY = true;
+let wgsArray;
+let flattenWGSArray;
 
 fileInput.addEventListener("change", onReadFile);
 copyBtn.addEventListener("click", onCopyBtn);
@@ -33,10 +35,10 @@ function onReadFile(e) {
 
   fileProcessing(file, coordSys, output, isXY)
     .then(({ multiPolygon }) => {
-      let wgsArray = sk63ToWgs84(multiPolygon);
-      const flattenWGSArray = flattenCoords(wgsArray);
+      wgsArray = sk63ToWgs84(multiPolygon);
+      flattenWGSArray = flattenCoords(wgsArray);
 
-      const averegWGS = flattenWGSArray.reduce(
+      const averageWGS = flattenWGSArray.reduce(
         ([latAcc, lonAcc], [lat, lon], i) => {
           if (i < flattenWGSArray.length - 1)
             return [latAcc + lat, lonAcc + lon];
@@ -47,14 +49,16 @@ function onReadFile(e) {
         },
       );
 
-      coordOfArea.textContent = averegWGS
+      coordOfArea.textContent = averageWGS
         .map((coord) => coord.toFixed(8))
         .join(", ");
 
-      createMap(averegWGS, wgsArray);
+      initMap().then(() => {
+        drawMultiPolygon(wgsArray, flattenWGSArray, Number(firstNum.value));
+      });
     })
     .catch((err) => {
-      parsedJSONCoord = null;
+      console.log(err);
     });
 }
 
@@ -78,7 +82,7 @@ async function onCopyBtn() {
   copyBtn.textContent = "Скопійовано!";
 
   setTimeout(() => {
-    copyBtn.textContent = "Копі";
+    copyBtn.textContent = "Копі / Навігація";
   }, 1500);
 
   const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
@@ -100,7 +104,9 @@ async function onCopyBtn() {
 
 function onChangeNumber() {
   if (!file) return;
-  fileProcessing(file, coordSys, output, isXY);
+  fileProcessing(file, coordSys, output, isXY).then(() => {
+    drawMultiPolygon(wgsArray, flattenWGSArray, Number(firstNum.value));
+  });
 }
 
 function onChangeXYBtn() {
@@ -117,8 +123,6 @@ function onSaveBtn() {
   );
 }
 
-// setupCounter(document.querySelector('#counter'))
-// const jsonStructure = {
 //   type: "MultiPolygon",
 //   coordinates: [
 //     [
@@ -127,8 +131,8 @@ function onSaveBtn() {
 //         [3366096.8700000001, 5599890.7800000003],
 //       ],
 //       [
-//         [3366088.8250000002, 5599893.7199999997],
-//         [3366096.8700000001, 5599890.7800000003],
+//         [3366080.8250000002, 5599893.7199999997],
+//         [33660974.8700000001, 5599890.7800000003],
 //       ],
 //     ],
 //   ],

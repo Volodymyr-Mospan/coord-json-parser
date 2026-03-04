@@ -107,9 +107,9 @@ pre.output {
   }
 }
 
-#map {
+#mapG {
   flex: 1;
   width: 100%;
-  min-height: 300px;
+  min-height: 600px;
   margin-top: 1rem;
 }

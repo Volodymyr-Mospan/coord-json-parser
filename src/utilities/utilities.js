@@ -1,15 +1,26 @@
 export function flattenCoords(coords) {
   const res = [];
+
   (function walk(c) {
     if (!Array.isArray(c)) return;
-    if (c.length && typeof c[0] === "number") {
+
+    // Старий формат [lat, lng]
+    if (c.length === 2 && typeof c[0] === "number") {
       res.push(c);
-    } else {
-      c.forEach((item, i) => {
-        if (i === 0 || !deepEqual(item, c[0])) walk(item);
-      });
+      return;
     }
+
+    // Новий формат {lat, lng}
+    if (c.length && typeof c[0] === "object" && "lat" in c[0]) {
+      c.forEach(({ lat, lng }) => {
+        res.push([lat, lng]);
+      });
+      return;
+    }
+
+    c.forEach(walk);
   })(coords);
+
   return res;
 }
 
