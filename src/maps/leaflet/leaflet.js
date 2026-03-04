@@ -3,7 +3,7 @@ import L from "leaflet";
 let map = null;
 let polygon = null;
 
-export function createMap(point, coordArray) {
+export function initMap(point, coordArray) {
   if (!map) {
     map = L.map("map").setView(point, 18);
   } else {
@@ -22,12 +22,23 @@ export function createMap(point, coordArray) {
       attribution: "&copy; Esri, Maxar, Earthstar Geographics",
     },
   );
+  // const earth = L.tileLayer(
+  //   "http://www.google.cn/maps/vt?lyrs=s@189&gl=cn&x={x}&y={y}&z={z}",
+  //   {
+  //     maxZoom: 22,
+  //     attribution: "&copy; Google",
+  //   },
+  // );
+
+  // api key AIzaSyAhLyxrO3MFl-1tOgOHdY8VOfj7tlYsZiE
 
   osm.addTo(map);
 
+  // L.control.layers({ Карта: osm, Супутник: esri, Земля: earth }).addTo(map);
   L.control.layers({ Карта: osm, Супутник: esri }).addTo(map);
 
   map.setView(point, 18);
   polygon = L.polygon(coordArray).addTo(map);
   polygon.bindPopup(point.map((coord) => coord.toFixed(8)).join(", "));
+  map.fitBounds(polygon.getBounds());
 }

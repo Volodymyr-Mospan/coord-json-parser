@@ -3,6 +3,7 @@ import * as math from "mathjs";
 import { POINTSz3 } from "./sc63_zone3";
 import { POINTSz4 } from "./sc63_zone4";
 import { POINTSz2 } from "./sc63_zone2";
+import { deepEqual } from "../utilities/utilities";
 
 proj4.defs("WGS84", "+proj=longlat +datum=WGS84 +no_defs");
 
@@ -101,12 +102,23 @@ export function sk63ToWgs84(coordArray) {
   const [dx, dy, dz, rx, ry, rz, m] = helmertParams;
 
   const wgsMultiPolygon = (function createWGSMultiPolygon(c) {
-    if (c.length && typeof c[0] === "number") {
+    if (!Array.isArray(c)) return null;
+
+    // точка
+    if (c.length === 2 && typeof c[0] === "number") {
       return transform(c);
     }
-    if (Array.isArray(c[0])) {
-      return c.map((el) => createWGSMultiPolygon(el));
+
+    // якщо це масив точок
+    if (Array.isArray(c[0]) && typeof c[0][0] === "number") {
+      if (deepEqual(c[0], c[c.length - 1])) {
+        c.pop();
+      }
+      return c.map(transform);
     }
+
+    // якщо це multipolygon
+    return c.map(createWGSMultiPolygon);
   })(coordArray);
 
   function transform([y, x]) {
@@ -128,7 +140,10 @@ export function sk63ToWgs84(coordArray) {
       lat2 = Math.atan2(Z2, p * (1 - (0.00669438 * N) / N));
     }
 
-    return [(lat2 * 180) / Math.PI, (lon2 * 180) / Math.PI];
+    const finalLat = (lat2 * 180) / Math.PI;
+    const finalLng = (lon2 * 180) / Math.PI;
+
+    return { lat: finalLat, lng: finalLng };
   }
 
   return wgsMultiPolygon;
