@@ -1,8 +1,9 @@
 import proj4 from "proj4";
 import * as math from "mathjs";
+import { POINTSz1 } from "./sc63_zone1";
+import { POINTSz2 } from "./sc63_zone2";
 import { POINTSz3 } from "./sc63_zone3";
 import { POINTSz4 } from "./sc63_zone4";
-import { POINTSz2 } from "./sc63_zone2";
 import { deepEqual } from "../utilities/utilities";
 
 proj4.defs("WGS84", "+proj=longlat +datum=WGS84 +no_defs");
@@ -80,6 +81,11 @@ export function sk63ToWgs84(coordArray) {
   let helmertParams;
 
   switch (numberOfZone) {
+    case "1":
+      proj4ZoneParam = "SK63_ZONE1";
+      helmertParams = preparationHelmertParams(POINTSz1, proj4ZoneParam);
+      break;
+
     case "2":
       proj4ZoneParam = "SK63_ZONE2";
       helmertParams = preparationHelmertParams(POINTSz2, proj4ZoneParam);
