@@ -1,9 +1,9 @@
 import proj4 from "proj4";
 
-// --- СК63 зона 3 (λ0 = 30°)
+// --- СК63 зона 3 (λ0 = 29°30')
 proj4.defs(
   "SK63_ZONE3",
-  "+proj=tmerc +lat_0=0 +lon_0=30 +k=1 +x_0=3300000 +y_0=0 +ellps=krass +units=m +no_defs",
+  "+proj=tmerc +lat_0=0 +lon_0=29.5 +k=1 +x_0=3300000 +y_0=0 +ellps=krass +units=m +no_defs",
 );
 
 // --- твої точки
