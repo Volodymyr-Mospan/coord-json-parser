@@ -1,3 +1,5 @@
+const apiKey = import.meta.env.VITE_GOOGLE_MAPS_KEY;
+
 import "./style.css";
 import { saveAs } from "file-saver";
 import { fileProcessing } from "./fileProcessing.js";
