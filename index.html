@@ -52,9 +52,10 @@
     <p>Розробив: Моспан Володимир || версія: 0.3.9</p>
 
     <script type="module" src="/src/main.js"></script>
-    <script>
+    <script type="module">
+      const apiKey = import.meta.env.VITE_GOOGLE_MAPS_KEY;
+
       ((g) => {
-        const API_KEY = "__API_KEY__";
         var h,
           a,
           k,
