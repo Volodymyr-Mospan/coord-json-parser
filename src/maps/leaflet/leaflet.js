@@ -30,8 +30,6 @@ export function initMap(point, coordArray) {
   //   },
   // );
 
-  // api key AIzaSyAhLyxrO3MFl-1tOgOHdY8VOfj7tlYsZiE
-
   osm.addTo(map);
 
   // L.control.layers({ Карта: osm, Супутник: esri, Земля: earth }).addTo(map);
