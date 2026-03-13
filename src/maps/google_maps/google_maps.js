@@ -11,6 +11,7 @@ export async function initMap() {
 
   map = new Map(document.getElementById("mapG"), {
     mapId: "aeabb86f4d1ecf8ae9f0c27",
+    gestureHandling: "greedy",
   });
 
   infoWindow = new google.maps.InfoWindow();
@@ -150,24 +151,3 @@ function clearMap() {
   polygons = [];
   markers = [];
 }
-
-// // Функція, яка викликається після завантаження API
-// function initMap() {
-//   // Створюємо карту
-//   const mapG = new google.maps.Map(document.getElementById("mapG"), {
-//     center: { lat: 50.45, lng: 30.52 }, // координати Києва
-//     zoom: 12,
-//   });
-
-//   // Створюємо сучасний маркер
-//   const marker = new google.maps.marker.AdvancedMarkerElement({
-//     position: { lat: 50.45, lng: 30.52 },
-//     map: map,
-//     title: "Київ",
-//   });
-// }
-
-// async;
-// defer;
-// src =
-//   "https://maps.googleapis.com/maps/api/js?key=AIzaSyAhLyxrO3MFl-1tOgOHdY8VOfj7tlYsZiE&callback=initMap";
