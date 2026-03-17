@@ -21,7 +21,7 @@ export async function initMap() {
 }
 
 let userMarker;
-let watchId;
+let watchId = null;
 
 export async function startWatchingLocation() {
   if (!navigator.geolocation) {
@@ -71,25 +71,33 @@ export async function startWatchingLocation() {
     {
       enableHighAccuracy: true,
       maximumAge: 0,
-      timeout: 10000,
+      timeout: 3000,
     },
   );
 }
 
-export function centerMapOnUser() {
-  if (!userMarker || !map) {
-    alert(
-      "Ще не визначена ваша локація. Спершу натисніть 'Показати мою локацію'.",
-    );
-    return;
+export function stopWatchingLocation() {
+  if (watchId !== null) {
+    navigator.geolocation.clearWatch(watchId);
+    watchId = null;
+    // console.log("🛑 Відстеження геолокації зупинено");
   }
-
-  google.maps.event.trigger(map, "resize"); // примусово оновлюємо карту
-
-  const userPos = userMarker.position;
-  map.setCenter(userPos);
-  map.setZoom(18);
 }
+
+// export function centerMapOnUser() {
+//   if (!userMarker || !map) {
+//     alert(
+//       "Ще не визначена ваша локація. Спершу натисніть 'Показати мою локацію'.",
+//     );
+//     return;
+//   }
+
+//   google.maps.event.trigger(map, "resize"); // примусово оновлюємо карту
+
+//   const userPos = userMarker.position;
+//   map.setCenter(userPos);
+//   map.setZoom(18);
+// }
 
 // ===============================
 // 🔹 Малювання MultiPolygon

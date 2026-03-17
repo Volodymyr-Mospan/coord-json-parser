@@ -2,11 +2,12 @@ import "./style.css";
 import { saveAs } from "file-saver";
 import { fileProcessing } from "./fileProcessing.js";
 import {
-  centerMapOnUser,
+  // centerMapOnUser,
   drawMultiPolygon,
   fitBoundsMulti,
   initMap,
   startWatchingLocation,
+  stopWatchingLocation,
 } from "./maps/google_maps/google_maps.js";
 import { sk63ToWgs84 } from "./sc_63_to_WGS/transformFunctions.js";
 import { flattenCoords, getFilenameFromFile } from "./utilities/utilities.js";
@@ -152,12 +153,14 @@ function onShowMyLocationBtn() {
 }
 
 function onCenterOnMeBtn() {
-  centerMapOnUser();
+  startWatchingLocation();
+  // centerMapOnUser();
   centerOnMeBtn.style.display = "none";
   centerOnAreaBtn.style.display = "block";
 }
 
 function onCenterOnAreaBtn() {
+  stopWatchingLocation();
   fitBoundsMulti(wgsArray);
   centerOnAreaBtn.style.display = "none";
   centerOnMeBtn.style.display = "block";
