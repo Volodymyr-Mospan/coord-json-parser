@@ -1,9 +1,14 @@
 import "./style.css";
 import { saveAs } from "file-saver";
 import { fileProcessing } from "./fileProcessing.js";
-import { drawMultiPolygon, initMap } from "./maps/google_maps/google_maps.js";
+import {
+  drawMultiPolygon,
+  initMap,
+  showMyLocation,
+} from "./maps/google_maps/google_maps.js";
 import { sk63ToWgs84 } from "./sc_63_to_WGS/transformFunctions.js";
-import { flattenCoords } from "./utilities/utilities.js";
+import { flattenCoords, getFilenameFromFile } from "./utilities/utilities.js";
+import { downloadKML, gmPathsToKML } from "./utilities/saveKML.js";
 
 const fileInput = document.getElementById("fileInput");
 const coordSys = document.querySelector(".coordinate_system");
@@ -13,18 +18,29 @@ const firstNum = document.getElementById("firstNum");
 const copyBtn = document.getElementById("copyCoords");
 const changeXYBtn = document.getElementById("changeXYBtn");
 const saveBtn = document.getElementById("saveBtn");
+const saveKMLBtn = document.getElementById("saveKMLBtn");
 const displayAtributes = document.querySelectorAll('[data-js="display"]');
+const showMyLocationBtn = document.getElementById("showMyLocation");
 
 let file;
 let isXY = true;
 let wgsArray;
 let flattenWGSArray;
+let mapG;
 
 fileInput.addEventListener("change", onReadFile);
 copyBtn.addEventListener("click", onCopyBtn);
 firstNum.addEventListener("change", onChangeNumber);
 changeXYBtn.addEventListener("click", onChangeXYBtn);
 saveBtn.addEventListener("click", onSaveBtn);
+saveKMLBtn.addEventListener("click", onSaveKMLBtn);
+showMyLocationBtn.addEventListener("click", () => {
+  if (mapG) {
+    showMyLocation();
+  } else {
+    alert("Спершу ініціалізуй карту!");
+  }
+});
 
 function onReadFile(e) {
   file = e.target.files[0];
@@ -53,7 +69,8 @@ function onReadFile(e) {
         .map((coord) => coord.toFixed(8))
         .join(", ");
 
-      initMap().then(() => {
+      initMap().then((map) => {
+        mapG = map;
         drawMultiPolygon(wgsArray, flattenWGSArray, Number(firstNum.value));
       });
     })
@@ -123,6 +140,12 @@ function onSaveBtn() {
   );
 }
 
+function onSaveKMLBtn() {
+  const filename = getFilenameFromFile(file);
+  const kml = gmPathsToKML(wgsArray, filename);
+  downloadKML(kml, filename);
+}
+
 //   type: "MultiPolygon",
 //   coordinates: [
 //     [
@@ -138,3 +161,21 @@ function onSaveBtn() {
 //   ],
 //   properties: { coordSys: "SC63" },
 // };
+
+document.addEventListener(
+  "wheel",
+  function (e) {
+    if (e.ctrlKey) e.preventDefault();
+  },
+  { passive: false },
+);
+
+document.addEventListener(
+  "touchmove",
+  function (e) {
+    if (e.scale !== undefined && e.scale !== 1) {
+      e.preventDefault();
+    }
+  },
+  { passive: false },
+);

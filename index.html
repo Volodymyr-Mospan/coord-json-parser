@@ -47,7 +47,18 @@
     <button type="button" id="saveBtn" data-js="display" style="display: none">
       Зберегти як .txt
     </button>
+    <button
+      type="button"
+      id="saveKMLBtn"
+      data-js="display"
+      style="display: none"
+    >
+      Зберегти як .kml
+    </button>
 
+    <button id="showMyLocation" data-js="display" style="display: none">
+      Показати мою локацію
+    </button>
     <div id="mapG" data-js="display" style="display: none"></div>
 
     <p>Розробив: Моспан Володимир || версія: 0.3.9</p>
@@ -59,18 +70,18 @@
       document.addEventListener("gesturechange", (e) => e.preventDefault());
       document.addEventListener("gestureend", (e) => e.preventDefault());
 
-      let lastTouchEnd = 0;
-      document.addEventListener(
-        "touchend",
-        function (event) {
-          const now = Date.now();
-          if (now - lastTouchEnd <= 300) {
-            event.preventDefault();
-          }
-          lastTouchEnd = now;
-        },
-        false,
-      );
+      // let lastTouchEnd = 0;
+      // document.addEventListener(
+      //   "touchend",
+      //   function (event) {
+      //     const now = Date.now();
+      //     if (now - lastTouchEnd <= 300) {
+      //       event.preventDefault();
+      //     }
+      //     lastTouchEnd = now;
+      //   },
+      //   false,
+      // );
     </script>
   </body>
 </html>

@@ -41,3 +41,19 @@ export function deepEqual(a, b) {
 
   return true;
 }
+
+export function getFilenameFromFile(file) {
+  const name = file.name;
+
+  // шукаємо "coordinates" + optional "_<numbers>" до першої крапки
+  const match = name.match(/^coordinates(?:_(.+?))?(?:\.[^.]+)?$/);
+
+  if (match) {
+    // якщо є додаткова частина після "_", беремо її, інакше просто "coordinates"
+    const base = match[1] ? match[1] : "coordinates";
+    return `${base}`;
+  }
+
+  // fallback, якщо назва не починається з "coordinates"
+  return name.replace(/\.[^/.]+$/, "");
+}
