@@ -15,7 +15,7 @@
       integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
       crossorigin=""
     />
-    <script type="module" crossorigin src="/coord-json-parser/assets/index-C16uhAM7.js"></script>
+    <script type="module" crossorigin src="/coord-json-parser/assets/index-CW_xac4h.js"></script>
     <link rel="stylesheet" crossorigin href="/coord-json-parser/assets/index-PnBK-C1r.css">
   </head>
   <body>
@@ -49,28 +49,39 @@
     <button type="button" id="saveBtn" data-js="display" style="display: none">
       Зберегти як .txt
     </button>
+    <button
+      type="button"
+      id="saveKMLBtn"
+      data-js="display"
+      style="display: none"
+    >
+      Зберегти як .kml
+    </button>
 
+    <button id="showMyLocation" data-js="display" style="display: none">
+      Показати мою локацію
+    </button>
     <div id="mapG" data-js="display" style="display: none"></div>
 
     <p>Розробив: Моспан Володимир || версія: 0.3.9</p>
-
+
     <script>
       document.addEventListener("gesturestart", (e) => e.preventDefault());
       document.addEventListener("gesturechange", (e) => e.preventDefault());
       document.addEventListener("gestureend", (e) => e.preventDefault());
 
-      let lastTouchEnd = 0;
-      document.addEventListener(
-        "touchend",
-        function (event) {
-          const now = Date.now();
-          if (now - lastTouchEnd <= 300) {
-            event.preventDefault();
-          }
-          lastTouchEnd = now;
-        },
-        false,
-      );
+      // let lastTouchEnd = 0;
+      // document.addEventListener(
+      //   "touchend",
+      //   function (event) {
+      //     const now = Date.now();
+      //     if (now - lastTouchEnd <= 300) {
+      //       event.preventDefault();
+      //     }
+      //     lastTouchEnd = now;
+      //   },
+      //   false,
+      // );
     </script>
   </body>
 </html>
