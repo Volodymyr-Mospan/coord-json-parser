@@ -63,7 +63,7 @@ export async function startWatchingLocation() {
       }
 
       map.setCenter(userPos);
-      map.setZoom(18);
+      // map.setZoom(18);
     },
     (error) => {
       alert("Не вдалося отримати вашу геолокацію: " + error.message);
