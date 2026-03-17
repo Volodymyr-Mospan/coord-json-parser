@@ -2,9 +2,11 @@ import "./style.css";
 import { saveAs } from "file-saver";
 import { fileProcessing } from "./fileProcessing.js";
 import {
+  centerMapOnUser,
   drawMultiPolygon,
+  fitBoundsMulti,
   initMap,
-  showMyLocation,
+  startWatchingLocation,
 } from "./maps/google_maps/google_maps.js";
 import { sk63ToWgs84 } from "./sc_63_to_WGS/transformFunctions.js";
 import { flattenCoords, getFilenameFromFile } from "./utilities/utilities.js";
@@ -21,11 +23,14 @@ const saveBtn = document.getElementById("saveBtn");
 const saveKMLBtn = document.getElementById("saveKMLBtn");
 const displayAtributes = document.querySelectorAll('[data-js="display"]');
 const showMyLocationBtn = document.getElementById("showMyLocation");
+const centerOnMeBtn = document.getElementById("centerOnMe");
+const centerOnAreaBtn = document.getElementById("centerOnArea");
 
 let file;
 let isXY = true;
 let wgsArray;
 let flattenWGSArray;
+let averageWGS;
 let mapG;
 
 fileInput.addEventListener("change", onReadFile);
@@ -34,13 +39,9 @@ firstNum.addEventListener("change", onChangeNumber);
 changeXYBtn.addEventListener("click", onChangeXYBtn);
 saveBtn.addEventListener("click", onSaveBtn);
 saveKMLBtn.addEventListener("click", onSaveKMLBtn);
-showMyLocationBtn.addEventListener("click", () => {
-  if (mapG) {
-    showMyLocation();
-  } else {
-    alert("Спершу ініціалізуй карту!");
-  }
-});
+showMyLocationBtn.addEventListener("click", onShowMyLocationBtn);
+centerOnMeBtn.addEventListener("click", onCenterOnMeBtn);
+centerOnAreaBtn.addEventListener("click", onCenterOnAreaBtn);
 
 function onReadFile(e) {
   file = e.target.files[0];
@@ -54,16 +55,13 @@ function onReadFile(e) {
       wgsArray = sk63ToWgs84(multiPolygon);
       flattenWGSArray = flattenCoords(wgsArray);
 
-      const averageWGS = flattenWGSArray.reduce(
-        ([latAcc, lonAcc], [lat, lon], i) => {
-          if (i < flattenWGSArray.length - 1)
-            return [latAcc + lat, lonAcc + lon];
-          return [
-            (latAcc + lat) / flattenWGSArray.length,
-            (lonAcc + lon) / flattenWGSArray.length,
-          ];
-        },
-      );
+      averageWGS = flattenWGSArray.reduce(([latAcc, lonAcc], [lat, lon], i) => {
+        if (i < flattenWGSArray.length - 1) return [latAcc + lat, lonAcc + lon];
+        return [
+          (latAcc + lat) / flattenWGSArray.length,
+          (lonAcc + lon) / flattenWGSArray.length,
+        ];
+      });
 
       coordOfArea.textContent = averageWGS
         .map((coord) => coord.toFixed(8))
@@ -144,6 +142,25 @@ function onSaveKMLBtn() {
   const filename = getFilenameFromFile(file);
   const kml = gmPathsToKML(wgsArray, filename);
   downloadKML(kml, filename);
+}
+
+function onShowMyLocationBtn() {
+  if (mapG) startWatchingLocation();
+  else alert("Спершу ініціалізуй карту!");
+  showMyLocationBtn.style.display = "none";
+  centerOnAreaBtn.style.display = "block";
+}
+
+function onCenterOnMeBtn() {
+  centerMapOnUser();
+  centerOnMeBtn.style.display = "none";
+  centerOnAreaBtn.style.display = "block";
+}
+
+function onCenterOnAreaBtn() {
+  fitBoundsMulti(wgsArray);
+  centerOnAreaBtn.style.display = "none";
+  centerOnMeBtn.style.display = "block";
 }
 
 //   type: "MultiPolygon",

@@ -21,53 +21,74 @@ export async function initMap() {
 }
 
 let userMarker;
+let watchId;
 
-export function showMyLocation() {
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(
-      // watchPosition
-      (position) => {
-        const userPos = {
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
-        };
-
-        // Якщо маркер вже існує, оновлюємо позицію
-        if (userMarker) {
-          userMarker.setPosition(userPos);
-        } else {
-          // Створюємо маркер користувача
-          userMarker = new google.maps.Marker({
-            position: userPos,
-            map: map,
-            title: "Ви тут!",
-            icon: {
-              path: google.maps.SymbolPath.CIRCLE,
-              scale: 8,
-              fillColor: "#00f",
-              fillOpacity: 0.8,
-              strokeWeight: 2,
-              strokeColor: "#fff",
-            },
-          });
-        }
-
-        // Центруємо карту на користувачі
-        map.setCenter(userPos);
-        map.setZoom(17);
-      },
-      (error) => {
-        alert("Не вдалося отримати вашу геолокацію: " + error.message);
-      },
-      {
-        enableHighAccuracy: true,
-        maximumAge: 0,
-        timeout: 15000,
-      },
-    );
-  } else {
+export async function startWatchingLocation() {
+  if (!navigator.geolocation) {
     alert("Геолокація не підтримується вашим браузером.");
+    return;
   }
+
+  if (watchId) {
+    alert("Вже відстежуємо вашу локацію!");
+    return;
+  }
+
+  const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
+
+  // 🔹 Створюємо DOM-елемент маркера один раз
+  const userMarkerElement = document.createElement("div");
+  userMarkerElement.style.width = "16px";
+  userMarkerElement.style.height = "16px";
+  userMarkerElement.style.backgroundColor = "#00f";
+  userMarkerElement.style.border = "2px solid #fff";
+  userMarkerElement.style.borderRadius = "50%";
+
+  watchId = navigator.geolocation.watchPosition(
+    (position) => {
+      const userPos = {
+        lat: position.coords.latitude,
+        lng: position.coords.longitude,
+      };
+
+      if (userMarker) {
+        userMarker.position = userPos; // оновлюємо позицію
+      } else {
+        userMarker = new AdvancedMarkerElement({
+          map,
+          position: userPos,
+          content: userMarkerElement, // передаємо DOM Node
+          title: "Ви тут!",
+        });
+      }
+
+      map.setCenter(userPos);
+      map.setZoom(18);
+    },
+    (error) => {
+      alert("Не вдалося отримати вашу геолокацію: " + error.message);
+    },
+    {
+      enableHighAccuracy: true,
+      maximumAge: 0,
+      timeout: 10000,
+    },
+  );
+}
+
+export function centerMapOnUser() {
+  if (!userMarker || !map) {
+    alert(
+      "Ще не визначена ваша локація. Спершу натисніть 'Показати мою локацію'.",
+    );
+    return;
+  }
+
+  google.maps.event.trigger(map, "resize"); // примусово оновлюємо карту
+
+  const userPos = userMarker.position;
+  map.setCenter(userPos);
+  map.setZoom(18);
 }
 
 // ===============================
@@ -167,7 +188,7 @@ function createMarkerLabel(number) {
 // ===============================
 // 🔹 Автоцентрування
 // ===============================
-function fitBoundsMulti(coords) {
+export function fitBoundsMulti(coords) {
   const bounds = new google.maps.LatLngBounds();
 
   function traverse(arr) {
