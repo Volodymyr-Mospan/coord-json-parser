@@ -45,8 +45,8 @@ centerOnMeBtn.addEventListener("click", onCenterOnMeBtn);
 centerOnAreaBtn.addEventListener("click", onCenterOnAreaBtn);
 
 function onReadFile(e) {
+  if (!e.target.files[0]) return;
   file = e.target.files[0];
-  if (!file) return;
 
   coordSys.style.color = "inherit";
   displayAtributes.forEach((el) => (el.style.display = "block"));

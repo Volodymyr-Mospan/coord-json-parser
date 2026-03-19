@@ -50,7 +50,7 @@ export function getFilenameFromFile(file) {
 
   if (match) {
     // якщо є додаткова частина після "_", беремо її, інакше просто "coordinates"
-    const base = match[1] ? match[1] : "coordinates";
+    const base = match[1] ? match[1].replace(/_/g, ":") : "coordinates";
     return `${base}`;
   }
 
