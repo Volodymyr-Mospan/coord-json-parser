@@ -28,8 +28,10 @@ const centerOnMeBtn = document.getElementById("centerOnMe");
 const centerOnAreaBtn = document.getElementById("centerOnArea");
 
 let file;
+let files = [];
+let allWgsArrays = [];
 let isXY = true;
-let wgsArray;
+let firstArrayWGS;
 let flattenWGSArray;
 let averageWGS;
 let mapG;
@@ -44,38 +46,78 @@ showMyLocationBtn.addEventListener("click", onShowMyLocationBtn);
 centerOnMeBtn.addEventListener("click", onCenterOnMeBtn);
 centerOnAreaBtn.addEventListener("click", onCenterOnAreaBtn);
 
-function onReadFile(e) {
-  if (!e.target.files[0]) return;
-  file = e.target.files[0];
+// flattenWGSArray = flattenCoords(wgsArray);
+
+// averageWGS = flattenWGSArray.reduce(([latAcc, lonAcc], [lat, lon], i) => {
+//   if (i < flattenWGSArray.length - 1) return [latAcc + lat, lonAcc + lon];
+//   return [
+//     (latAcc + lat) / flattenWGSArray.length,
+//     (lonAcc + lon) / flattenWGSArray.length,
+//   ];
+// });
+
+// coordOfArea.textContent = averageWGS
+//   .map((coord) => coord.toFixed(8))
+//   .join(", ");
+
+// initMap().then((map) => {
+//   mapG = map;
+//   drawMultiPolygon(wgsArray, flattenWGSArray, Number(firstNum.value));
+// });
+
+async function onReadFile(e) {
+  if (!e.target.files.length) return;
+
+  files = Array.from(e.target.files);
+
+  allWgsArrays = [];
 
   coordSys.style.color = "inherit";
   displayAtributes.forEach((el) => (el.style.display = "block"));
 
-  fileProcessing(file, coordSys, output, isXY)
-    .then(({ multiPolygon }) => {
-      wgsArray = sk63ToWgs84(multiPolygon);
-      flattenWGSArray = flattenCoords(wgsArray);
+  for (const file of files) {
+    try {
+      const { multiPolygon } = await fileProcessing(
+        file,
+        coordSys,
+        output,
+        isXY,
+      );
 
-      averageWGS = flattenWGSArray.reduce(([latAcc, lonAcc], [lat, lon], i) => {
-        if (i < flattenWGSArray.length - 1) return [latAcc + lat, lonAcc + lon];
-        return [
-          (latAcc + lat) / flattenWGSArray.length,
-          (lonAcc + lon) / flattenWGSArray.length,
-        ];
+      const wgsArray = sk63ToWgs84(multiPolygon);
+
+      allWgsArrays.push({
+        name: getFilenameFromFile(file),
+        wgsArray,
       });
+    } catch (err) {
+      console.error("Помилка файлу:", file.name, err);
+    }
+  }
 
-      coordOfArea.textContent = averageWGS
-        .map((coord) => coord.toFixed(8))
-        .join(", ");
+  // показуємо тільки перший на мапі (опціонально)
+  if (allWgsArrays.length) {
+    firstArrayWGS = allWgsArrays[0].wgsArray;
 
-      initMap().then((map) => {
-        mapG = map;
-        drawMultiPolygon(wgsArray, flattenWGSArray, Number(firstNum.value));
-      });
-    })
-    .catch((err) => {
-      console.log(err);
+    flattenWGSArray = flattenCoords(firstArrayWGS);
+
+    averageWGS = flattenWGSArray.reduce(([latAcc, lonAcc], [lat, lon], i) => {
+      if (i < flattenWGSArray.length - 1) return [latAcc + lat, lonAcc + lon];
+      return [
+        (latAcc + lat) / flattenWGSArray.length,
+        (lonAcc + lon) / flattenWGSArray.length,
+      ];
     });
+
+    coordOfArea.textContent = averageWGS
+      .map((coord) => coord.toFixed(8))
+      .join(", ");
+
+    initMap().then((map) => {
+      mapG = map;
+      drawMultiPolygon(firstArrayWGS, flattenWGSArray, Number(firstNum.value));
+    });
+  }
 }
 
 async function onCopyBtn() {
@@ -161,7 +203,7 @@ function onCenterOnMeBtn() {
 
 function onCenterOnAreaBtn() {
   stopWatchingLocation();
-  fitBoundsMulti(wgsArray);
+  fitBoundsMulti(firstArrayWGS);
   centerOnAreaBtn.style.display = "none";
   centerOnMeBtn.style.display = "block";
 }
