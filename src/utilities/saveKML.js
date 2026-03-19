@@ -79,6 +79,44 @@ export function gmPathsToKML(paths, name = "Polygon") {
 </kml>`;
 }
 
+export function multipleToKML(allData) {
+  const placemarks = allData
+    .map(({ name, wgsArray }) => {
+      const multi = gmPathsToKML(wgsArray, name);
+
+      // вирізаємо тільки <MultiGeometry>...</MultiGeometry>
+      const match = multi.match(/<MultiGeometry>[\s\S]*<\/MultiGeometry>/);
+
+      return `
+      <Placemark>
+        <name>${name}</name>
+        <description>${name}</description>
+        <styleUrl>#myPolyStyle</styleUrl>
+        ${match ? match[0] : ""}
+      </Placemark>
+    `;
+    })
+    .join("");
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+  <kml xmlns="http://www.opengis.net/kml/2.2">
+    <Document>
+      <Style id="myPolyStyle">
+        <LineStyle>
+          <color>ff00ff00</color>
+          <width>2</width>
+        </LineStyle>
+        <PolyStyle>
+          <color>2200ff00</color>
+          <fill>1</fill>
+          <outline>1</outline>
+        </PolyStyle>
+      </Style>
+      ${placemarks}
+    </Document>
+  </kml>`;
+}
+
 export function downloadKML(kml, filename = "polygon.kml") {
   filename += ".kml";
   const blob = new Blob([kml], {

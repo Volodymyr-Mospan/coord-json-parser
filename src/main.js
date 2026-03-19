@@ -11,7 +11,11 @@ import {
 } from "./maps/google_maps/google_maps.js";
 import { sk63ToWgs84 } from "./sc_63_to_WGS/transformFunctions.js";
 import { flattenCoords, getFilenameFromFile } from "./utilities/utilities.js";
-import { downloadKML, gmPathsToKML } from "./utilities/saveKML.js";
+import {
+  downloadKML,
+  // gmPathsToKML,
+  multipleToKML,
+} from "./utilities/saveKML.js";
 
 const fileInput = document.getElementById("fileInput");
 const coordSys = document.querySelector(".coordinate_system");
@@ -115,7 +119,10 @@ async function onReadFile(e) {
 
     initMap().then((map) => {
       mapG = map;
-      drawMultiPolygon(firstArrayWGS, flattenWGSArray, Number(firstNum.value));
+      allWgsArrays.forEach((obj) => {
+        drawMultiPolygon(obj.wgsArray, flattenWGSArray, Number(firstNum.value));
+      });
+      // drawMultiPolygon(firstArrayWGS, flattenWGSArray, Number(firstNum.value));
     });
   }
 }
@@ -182,9 +189,12 @@ function onSaveBtn() {
 }
 
 function onSaveKMLBtn() {
-  const filename = getFilenameFromFile(file);
-  const kml = gmPathsToKML(wgsArray, filename);
-  downloadKML(kml, filename);
+  if (!allWgsArrays.length) return;
+  const kml = multipleToKML(allWgsArrays);
+  if (allWgsArrays.length === 1) {
+    return downloadKML(kml, allWgsArrays[0].name);
+  }
+  downloadKML(kml, "combined");
 }
 
 function onShowMyLocationBtn() {
