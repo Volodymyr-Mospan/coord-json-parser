@@ -1,7 +1,7 @@
 import { createNXYH } from "./createNXYH.js";
 import { flattenCoords } from "./utilities/utilities.js";
 
-export function fileProcessing(file, coordSys, output, isXY) {
+export function fileProcessing({ file, coordSys, isXY, fromNumber }) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
 
@@ -12,13 +12,9 @@ export function fileProcessing(file, coordSys, output, isXY) {
         const multiPolygon = jsonData.coordinates;
 
         coordSys.textContent = `Система координат - ${jsonData.properties.coordSys}`;
-        output.textContent = createNXYH(
-          flatCoordArray,
-          Number(firstNum.value),
-          isXY,
-        );
+        const arrayNXYH = createNXYH(flatCoordArray, fromNumber, isXY);
 
-        resolve({ flatCoordArray, multiPolygon }); // повертаємо jsonData
+        resolve({ arrayNXYH, flatCoordArray, multiPolygon }); // повертаємо jsonData
       } catch (err) {
         console.error("Помилка парсингу JSON:", err);
         coordSys.textContent =

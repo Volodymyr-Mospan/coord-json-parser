@@ -2,20 +2,17 @@ import "./style.css";
 import { saveAs } from "file-saver";
 import { fileProcessing } from "./fileProcessing.js";
 import {
-  // centerMapOnUser,
+  clearMap,
   drawMultiPolygon,
   fitBoundsMulti,
   initMap,
   startWatchingLocation,
   stopWatchingLocation,
+  // assignNumbers,
 } from "./maps/google_maps/google_maps.js";
 import { sk63ToWgs84 } from "./sc_63_to_WGS/transformFunctions.js";
 import { flattenCoords, getFilenameFromFile } from "./utilities/utilities.js";
-import {
-  downloadKML,
-  // gmPathsToKML,
-  multipleToKML,
-} from "./utilities/saveKML.js";
+import { downloadKML, multipleToKML } from "./utilities/saveKML.js";
 
 const fileInput = document.getElementById("fileInput");
 const coordSys = document.querySelector(".coordinate_system");
@@ -39,8 +36,12 @@ let firstArrayWGS;
 let flattenWGSArray;
 let averageWGS;
 let mapG;
+let firstNumberVal = Number(firstNum.value);
+let lastNumber;
+let coordsNXYH = [];
 
 fileInput.addEventListener("change", onReadFile);
+// fileInput.addEventListener("change", processAllFiles);
 copyBtn.addEventListener("click", onCopyBtn);
 firstNum.addEventListener("change", onChangeNumber);
 changeXYBtn.addEventListener("click", onChangeXYBtn);
@@ -50,56 +51,16 @@ showMyLocationBtn.addEventListener("click", onShowMyLocationBtn);
 centerOnMeBtn.addEventListener("click", onCenterOnMeBtn);
 centerOnAreaBtn.addEventListener("click", onCenterOnAreaBtn);
 
-// flattenWGSArray = flattenCoords(wgsArray);
-
-// averageWGS = flattenWGSArray.reduce(([latAcc, lonAcc], [lat, lon], i) => {
-//   if (i < flattenWGSArray.length - 1) return [latAcc + lat, lonAcc + lon];
-//   return [
-//     (latAcc + lat) / flattenWGSArray.length,
-//     (lonAcc + lon) / flattenWGSArray.length,
-//   ];
-// });
-
-// coordOfArea.textContent = averageWGS
-//   .map((coord) => coord.toFixed(8))
-//   .join(", ");
-
-// initMap().then((map) => {
-//   mapG = map;
-//   drawMultiPolygon(wgsArray, flattenWGSArray, Number(firstNum.value));
-// });
-
 async function onReadFile(e) {
   if (!e.target.files.length) return;
 
   files = Array.from(e.target.files);
 
-  allWgsArrays = [];
-
-  coordSys.style.color = "inherit";
   displayAtributes.forEach((el) => (el.style.display = "block"));
 
-  for (const file of files) {
-    try {
-      const { multiPolygon } = await fileProcessing(
-        file,
-        coordSys,
-        output,
-        isXY,
-      );
+  await processAllFiles();
 
-      const wgsArray = sk63ToWgs84(multiPolygon);
-
-      allWgsArrays.push({
-        name: getFilenameFromFile(file),
-        wgsArray,
-      });
-    } catch (err) {
-      console.error("Помилка файлу:", file.name, err);
-    }
-  }
-
-  // показуємо тільки перший на мапі (опціонально)
+  // центр карти
   if (allWgsArrays.length) {
     firstArrayWGS = allWgsArrays[0].wgsArray;
 
@@ -107,6 +68,7 @@ async function onReadFile(e) {
 
     averageWGS = flattenWGSArray.reduce(([latAcc, lonAcc], [lat, lon], i) => {
       if (i < flattenWGSArray.length - 1) return [latAcc + lat, lonAcc + lon];
+
       return [
         (latAcc + lat) / flattenWGSArray.length,
         (lonAcc + lon) / flattenWGSArray.length,
@@ -117,13 +79,11 @@ async function onReadFile(e) {
       .map((coord) => coord.toFixed(8))
       .join(", ");
 
-    initMap().then((map) => {
-      mapG = map;
-      allWgsArrays.forEach((obj) => {
-        drawMultiPolygon(obj.wgsArray, flattenWGSArray, Number(firstNum.value));
-      });
-      // drawMultiPolygon(firstArrayWGS, flattenWGSArray, Number(firstNum.value));
-    });
+    if (!mapG) {
+      mapG = await initMap();
+    }
+
+    drawAllPolygons();
   }
 }
 
@@ -167,11 +127,8 @@ async function onCopyBtn() {
   }
 }
 
-function onChangeNumber() {
-  if (!file) return;
-  fileProcessing(file, coordSys, output, isXY).then(() => {
-    drawMultiPolygon(wgsArray, flattenWGSArray, Number(firstNum.value));
-  });
+async function onChangeNumber() {
+  await processAllFiles();
 }
 
 function onChangeXYBtn() {
@@ -233,6 +190,65 @@ function onCenterOnAreaBtn() {
 //   ],
 //   properties: { coordSys: "SC63" },
 // };
+
+async function processAllFiles() {
+  if (!files.length) return;
+
+  firstNumberVal = Number(firstNum.value);
+  allWgsArrays = [];
+  coordsNXYH = [];
+  lastNumber = firstNumberVal - 1;
+
+  output.textContent = "";
+
+  for (const file of files) {
+    try {
+      let fromNumber = firstNumberVal + coordsNXYH.length;
+
+      const { multiPolygon, arrayNXYH } = await fileProcessing({
+        file,
+        coordSys,
+        output,
+        isXY,
+        fromNumber,
+      });
+
+      const wgsArray = sk63ToWgs84(multiPolygon);
+
+      coordsNXYH.push(...arrayNXYH);
+
+      allWgsArrays.push({
+        name: getFilenameFromFile(file),
+        wgsArray,
+      });
+    } catch (err) {
+      console.error("Помилка файлу:", file.name, err);
+    }
+  }
+
+  output.textContent = coordsNXYH.join("\n");
+
+  drawAllPolygons();
+}
+
+function drawAllPolygons() {
+  if (!allWgsArrays.length) return;
+
+  lastNumber = Number(firstNum.value) - 1;
+
+  // ❗ очистка карти (дуже важливо)
+  if (mapG) {
+    clearMap();
+  }
+
+  allWgsArrays.forEach(({ wgsArray }) => {
+    const flattenArray = flattenCoords(wgsArray);
+
+    drawMultiPolygon(wgsArray, flattenArray, lastNumber + 1);
+
+    lastNumber += flattenArray.length;
+  });
+}
 
 document.addEventListener(
   "wheel",
