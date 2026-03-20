@@ -8,7 +8,6 @@ import {
   initMap,
   startWatchingLocation,
   stopWatchingLocation,
-  // assignNumbers,
 } from "./maps/google_maps/google_maps.js";
 import { sk63ToWgs84 } from "./sc_63_to_WGS/transformFunctions.js";
 import { flattenCoords, getFilenameFromFile } from "./utilities/utilities.js";
@@ -41,7 +40,6 @@ let lastNumber;
 let coordsNXYH = [];
 
 fileInput.addEventListener("change", onReadFile);
-// fileInput.addEventListener("change", processAllFiles);
 copyBtn.addEventListener("click", onCopyBtn);
 firstNum.addEventListener("change", onChangeNumber);
 changeXYBtn.addEventListener("click", onChangeXYBtn);
@@ -84,6 +82,7 @@ async function onReadFile(e) {
     }
 
     drawAllPolygons();
+    fitBoundsMulti(firstArrayWGS);
   }
 }
 
@@ -139,10 +138,15 @@ function onChangeXYBtn() {
 }
 
 function onSaveBtn() {
-  saveAs(
-    new Blob([output.textContent]),
-    `${file.name.slice(0, file.name.indexOf("."))}.txt`,
-  );
+  if (!allWgsArrays.length) return;
+
+  if (allWgsArrays.length === 1) {
+    return saveAs(
+      new Blob([output.textContent]),
+      `${allWgsArrays[0].name.slice(0, allWgsArrays[0].name.indexOf("."))}.txt`,
+    );
+  }
+  saveAs(new Blob([output.textContent]), "combined.txt");
 }
 
 function onSaveKMLBtn() {
@@ -233,19 +237,15 @@ async function processAllFiles() {
 
 function drawAllPolygons() {
   if (!allWgsArrays.length) return;
-
   lastNumber = Number(firstNum.value) - 1;
 
-  // ❗ очистка карти (дуже важливо)
   if (mapG) {
     clearMap();
   }
 
   allWgsArrays.forEach(({ wgsArray }) => {
     const flattenArray = flattenCoords(wgsArray);
-
     drawMultiPolygon(wgsArray, flattenArray, lastNumber + 1);
-
     lastNumber += flattenArray.length;
   });
 }
