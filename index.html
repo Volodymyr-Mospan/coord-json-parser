@@ -32,6 +32,8 @@
       Копі / Навігація
     </button>
 
+    <button id="dev" type="button" style="display: none">розробка</button>
+
     <label for="firstNum">З якого нумеровати:</label>
     <input type="number" name="firstNum" id="firstNum" value="1" min="0" />
     <button
@@ -67,6 +69,7 @@
 
     <script type="module" src="/src/main.js"></script>
     <script type="module" src="./src/maps/google_maps/gm.js"></script>
+    <script type="module" src="/src/utilities/dev.js"></script>
     <script>
       document.addEventListener("gesturestart", (e) => e.preventDefault());
       document.addEventListener("gesturechange", (e) => e.preventDefault());
