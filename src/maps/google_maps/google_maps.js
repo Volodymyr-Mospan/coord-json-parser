@@ -1,3 +1,5 @@
+import { flattenCoords } from "../../utilities/utilities";
+
 let map;
 let polygons = [];
 let markers = [];
@@ -84,10 +86,6 @@ export function stopWatchingLocation() {
 // ===============================
 // 🔹 Малювання MultiPolygon
 // ===============================
-
-// ===============================
-// 🔹 Малювання MultiPolygon
-// ===============================
 export async function drawMultiPolygon(
   multiPolygonCoords,
   flattenWGSArray,
@@ -134,6 +132,24 @@ export async function drawMultiPolygon(
     // const area = google.maps.geometry.spherical.computeArea(polygon.getPath());
 
     // console.log(`Площа полігону ${polygonIndex + 1}: ${area.toFixed(2)} м²`);
+  });
+}
+
+// ===============================
+// 🔹 Малювання всіх MultiPolygon
+// ===============================
+export function drawAllPolygons(allWgsArrays, lastNumber) {
+  if (!allWgsArrays.length) return;
+  lastNumber = Number(firstNum.value) - 1;
+
+  if (mapG) {
+    clearMap();
+  }
+
+  allWgsArrays.forEach(({ wgsArray }) => {
+    const flattenArray = flattenCoords(wgsArray);
+    drawMultiPolygon(wgsArray, flattenArray, lastNumber + 1);
+    lastNumber += flattenArray.length;
   });
 }
 

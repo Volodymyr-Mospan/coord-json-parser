@@ -1,5 +1,55 @@
 import { createNXYH } from "./createNXYH.js";
-import { flattenCoords } from "./utilities/utilities.js";
+import { drawAllPolygons } from "./maps/google_maps/google_maps.js";
+import { sk63ToWgs84 } from "./sc_63_to_WGS/transformFunctions.js";
+import { flattenCoords, getFilenameFromFile } from "./utilities/utilities.js";
+
+export async function processAllFiles({
+  firstNum,
+  coordsNXYH,
+  lastNumber,
+  output,
+  files,
+  coordSys,
+  isXY,
+}) {
+  if (!files.length) return;
+
+  const firstNumberVal = Number(firstNum.value);
+  const allWgsArrays = [];
+  coordsNXYH = [];
+  lastNumber = firstNumberVal - 1;
+
+  for (const file of files) {
+    try {
+      let fromNumber = firstNumberVal + coordsNXYH.length;
+
+      const { multiPolygon, arrayNXYH } = await fileProcessing({
+        file,
+        coordSys,
+        output,
+        isXY,
+        fromNumber,
+      });
+
+      const wgsArray = sk63ToWgs84(multiPolygon);
+
+      coordsNXYH.push(...arrayNXYH);
+
+      allWgsArrays.push({
+        name: getFilenameFromFile(file),
+        wgsArray,
+      });
+    } catch (err) {
+      console.error("Помилка файлу:", file.name, err);
+    }
+  }
+
+  output.textContent = coordsNXYH.join("\n");
+
+  drawAllPolygons(allWgsArrays, lastNumber);
+
+  return allWgsArrays;
+}
 
 export function fileProcessing({ file, coordSys, isXY, fromNumber }) {
   return new Promise((resolve, reject) => {

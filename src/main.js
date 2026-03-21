@@ -1,16 +1,14 @@
 import "./style.css";
 import { saveAs } from "file-saver";
-import { fileProcessing } from "./fileProcessing.js";
+import { fileProcessing, processAllFiles } from "./fileProcessing.js";
 import {
-  clearMap,
-  drawMultiPolygon,
+  drawAllPolygons,
   fitBoundsMulti,
   initMap,
   startWatchingLocation,
   stopWatchingLocation,
 } from "./maps/google_maps/google_maps.js";
-import { sk63ToWgs84 } from "./sc_63_to_WGS/transformFunctions.js";
-import { flattenCoords, getFilenameFromFile } from "./utilities/utilities.js";
+import { flattenCoords } from "./utilities/utilities.js";
 import { downloadKML, multipleToKML } from "./utilities/saveKML.js";
 
 const fileInput = document.getElementById("fileInput");
@@ -35,7 +33,6 @@ let firstArrayWGS;
 let flattenWGSArray;
 let averageWGS;
 let mapG;
-let firstNumberVal = Number(firstNum.value);
 let lastNumber;
 let coordsNXYH = [];
 
@@ -56,7 +53,15 @@ async function onReadFile(e) {
 
   displayAtributes.forEach((el) => (el.style.display = "block"));
 
-  await processAllFiles();
+  allWgsArrays = await processAllFiles({
+    firstNum,
+    coordsNXYH,
+    lastNumber,
+    output,
+    files,
+    coordSys,
+    isXY,
+  });
 
   // центр карти
   if (allWgsArrays.length) {
@@ -81,7 +86,7 @@ async function onReadFile(e) {
       mapG = await initMap();
     }
 
-    drawAllPolygons();
+    drawAllPolygons(allWgsArrays, lastNumber);
     fitBoundsMulti(firstArrayWGS);
   }
 }
@@ -127,7 +132,15 @@ async function onCopyBtn() {
 }
 
 async function onChangeNumber() {
-  await processAllFiles();
+  await processAllFiles({
+    firstNum,
+    coordsNXYH,
+    lastNumber,
+    output,
+    files,
+    coordSys,
+    isXY,
+  });
 }
 
 function onChangeXYBtn() {
@@ -195,60 +208,45 @@ function onCenterOnAreaBtn() {
 //   properties: { coordSys: "SC63" },
 // };
 
-async function processAllFiles() {
-  if (!files.length) return;
+// async function processAllFiles() {
+//   if (!files.length) return;
 
-  firstNumberVal = Number(firstNum.value);
-  allWgsArrays = [];
-  coordsNXYH = [];
-  lastNumber = firstNumberVal - 1;
+//   firstNumberVal = Number(firstNum.value);
+//   allWgsArrays = [];
+//   coordsNXYH = [];
+//   lastNumber = firstNumberVal - 1;
 
-  output.textContent = "";
+//   output.textContent = "";
 
-  for (const file of files) {
-    try {
-      let fromNumber = firstNumberVal + coordsNXYH.length;
+//   for (const file of files) {
+//     try {
+//       let fromNumber = firstNumberVal + coordsNXYH.length;
 
-      const { multiPolygon, arrayNXYH } = await fileProcessing({
-        file,
-        coordSys,
-        output,
-        isXY,
-        fromNumber,
-      });
+//       const { multiPolygon, arrayNXYH } = await fileProcessing({
+//         file,
+//         coordSys,
+//         output,
+//         isXY,
+//         fromNumber,
+//       });
 
-      const wgsArray = sk63ToWgs84(multiPolygon);
+//       const wgsArray = sk63ToWgs84(multiPolygon);
 
-      coordsNXYH.push(...arrayNXYH);
+//       coordsNXYH.push(...arrayNXYH);
 
-      allWgsArrays.push({
-        name: getFilenameFromFile(file),
-        wgsArray,
-      });
-    } catch (err) {
-      console.error("Помилка файлу:", file.name, err);
-    }
-  }
+//       allWgsArrays.push({
+//         name: getFilenameFromFile(file),
+//         wgsArray,
+//       });
+//     } catch (err) {
+//       console.error("Помилка файлу:", file.name, err);
+//     }
+//   }
 
-  output.textContent = coordsNXYH.join("\n");
+//   output.textContent = coordsNXYH.join("\n");
 
-  drawAllPolygons();
-}
-
-function drawAllPolygons() {
-  if (!allWgsArrays.length) return;
-  lastNumber = Number(firstNum.value) - 1;
-
-  if (mapG) {
-    clearMap();
-  }
-
-  allWgsArrays.forEach(({ wgsArray }) => {
-    const flattenArray = flattenCoords(wgsArray);
-    drawMultiPolygon(wgsArray, flattenArray, lastNumber + 1);
-    lastNumber += flattenArray.length;
-  });
-}
+//   drawAllPolygons();
+// }
 
 document.addEventListener(
   "wheel",
