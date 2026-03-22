@@ -15,6 +15,7 @@ import { downloadKML, multipleToKML } from "./utilities/saveKML.js";
 // DOM
 // ==============================
 const fileInput = document.getElementById("fileInput");
+const dropZone = document.getElementById("dropZone");
 const coordSys = document.querySelector(".coord-sys");
 const coordOfArea = document.querySelector(".coordinate_of_area");
 const output = document.getElementById("output");
@@ -70,6 +71,12 @@ async function onReadFile(e) {
   if (mapG) mapG.style.display = "block";
 
   await runProcessing();
+
+  if (state.files) {
+    dropZone.classList.add("downloaded");
+  } else {
+    dropZone.classList.remove("downloaded");
+  }
 }
 
 async function onCopyBtn() {

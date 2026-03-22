@@ -73,6 +73,13 @@
           >
             X↔Y
           </button>
+          <button
+            id="expandOutputBtn"
+            class="btn btn--ghost btn--square"
+            title="Розгорнути координати"
+          >
+            ⛶
+          </button>
         </section>
 
         <!-- Вивід координат -->
@@ -140,6 +147,28 @@
           <p>Завантажте JSON-файл координат</p>
         </div>
       </main>
+    </div>
+
+    <!-- Модальне вікно виводу координат -->
+    <div class="output-modal" id="outputModal">
+      <div class="output-modal__backdrop" id="outputModalBackdrop"></div>
+      <div class="output-modal__box">
+        <div class="output-modal__header">
+          <span class="output-modal__title">Координати</span>
+          <button
+            class="output-modal__close"
+            id="outputModalClose"
+            title="Закрити"
+          >
+            ✕
+          </button>
+        </div>
+        <pre
+          class="output output-modal__content"
+          id="outputModalContent"
+          contenteditable="true"
+        ></pre>
+      </div>
     </div>
 
     <!-- Dev button (hidden) -->

@@ -1,4 +1,33 @@
 // ==============================
+// Розгортання output в модальне вікно
+// ==============================
+const expandOutputBtn = document.getElementById("expandOutputBtn");
+const outputModal = document.getElementById("outputModal");
+const outputModalClose = document.getElementById("outputModalClose");
+const outputModalBackdrop = document.getElementById("outputModalBackdrop");
+const outputModalContent = document.getElementById("outputModalContent");
+const outputEl = document.getElementById("output");
+
+function openOutputModal() {
+  outputModalContent.textContent = outputEl.textContent;
+  outputModal.classList.add("is-open");
+}
+
+function closeOutputModal() {
+  outputModal.classList.remove("is-open");
+  outputEl.textContent = outputModalContent.textContent;
+}
+
+expandOutputBtn.addEventListener("click", openOutputModal);
+outputModalClose.addEventListener("click", closeOutputModal);
+outputModalBackdrop.addEventListener("click", closeOutputModal);
+
+// Закриття по Escape
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") closeOutputModal();
+});
+
+// ==============================
 // Мобільний toggle карти
 // ==============================
 const mapContainer = document.getElementById("mapContainer");
