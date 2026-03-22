@@ -141,8 +141,6 @@ export async function drawMultiPolygon(
 export function drawAllPolygons(allWgsArrays, firstNumValue = 1) {
   if (!allWgsArrays.length) return;
 
-  clearMap();
-
   let lastNumber = firstNumValue - 1;
 
   allWgsArrays.forEach(({ wgsArray }) => {
