@@ -5,19 +5,16 @@ import { flattenCoords, getFilenameFromFile } from "./utilities/utilities.js";
 
 export async function processAllFiles({
   firstNum,
-  coordsNXYH,
-  lastNumber,
   output,
   files,
   coordSys,
   isXY,
 }) {
-  if (!files.length) return;
+  if (!files.length) return { allWgsArrays: [], coordsNXYH: [] };
 
   const firstNumberVal = Number(firstNum.value);
   const allWgsArrays = [];
-  coordsNXYH = [];
-  lastNumber = firstNumberVal - 1;
+  const coordsNXYH = [];
 
   for (const file of files) {
     try {
@@ -26,15 +23,12 @@ export async function processAllFiles({
       const { multiPolygon, arrayNXYH } = await fileProcessing({
         file,
         coordSys,
-        output,
         isXY,
         fromNumber,
       });
 
       const wgsArray = sk63ToWgs84(multiPolygon);
-
       coordsNXYH.push(...arrayNXYH);
-
       allWgsArrays.push({
         name: getFilenameFromFile(file),
         wgsArray,
@@ -45,10 +39,8 @@ export async function processAllFiles({
   }
 
   output.textContent = coordsNXYH.join("\n");
-
-  drawAllPolygons(allWgsArrays, lastNumber);
-
-  return allWgsArrays;
+  drawAllPolygons(allWgsArrays);
+  return { allWgsArrays, coordsNXYH };
 }
 
 export function fileProcessing({ file, coordSys, isXY, fromNumber }) {

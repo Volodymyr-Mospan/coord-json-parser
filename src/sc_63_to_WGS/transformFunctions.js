@@ -117,10 +117,8 @@ export function sk63ToWgs84(coordArray) {
 
     // якщо це масив точок
     if (Array.isArray(c[0]) && typeof c[0][0] === "number") {
-      if (deepEqual(c[0], c[c.length - 1])) {
-        c.pop();
-      }
-      return c.map(transform);
+      const ring = deepEqual(c[0], c[c.length - 1]) ? c.slice(0, -1) : c;
+      return ring.map(transform);
     }
 
     // якщо це multipolygon

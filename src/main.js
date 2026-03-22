@@ -11,6 +11,9 @@ import {
 import { flattenCoords } from "./utilities/utilities.js";
 import { downloadKML, multipleToKML } from "./utilities/saveKML.js";
 
+// ==============================
+// DOM
+// ==============================
 const fileInput = document.getElementById("fileInput");
 const coordSys = document.querySelector(".coordinate_system");
 const coordOfArea = document.querySelector(".coordinate_of_area");
@@ -25,17 +28,21 @@ const showMyLocationBtn = document.getElementById("showMyLocation");
 const centerOnMeBtn = document.getElementById("centerOnMe");
 const centerOnAreaBtn = document.getElementById("centerOnArea");
 
-let file;
-let files = [];
-let allWgsArrays = [];
-let isXY = true;
-let firstArrayWGS;
-let flattenWGSArray;
-let averageWGS;
-let mapG;
-let lastNumber;
-let coordsNXYH = [];
+// ==============================
+// Стан застосунку в одному об'єкті
+// ==============================
+const state = {
+  files: [],
+  allWgsArrays: [],
+  coordsNXYH: [],
+  isXY: true,
+  firstArrayWGS: null,
+  mapInitialized: false,
+};
 
+// ==============================
+// Events
+// ==============================
 fileInput.addEventListener("change", onReadFile);
 copyBtn.addEventListener("click", onCopyBtn);
 firstNum.addEventListener("change", onChangeNumber);
@@ -46,54 +53,49 @@ showMyLocationBtn.addEventListener("click", onShowMyLocationBtn);
 centerOnMeBtn.addEventListener("click", onCenterOnMeBtn);
 centerOnAreaBtn.addEventListener("click", onCenterOnAreaBtn);
 
+// ==============================
+// Handlers
+// ==============================
 async function onReadFile(e) {
   if (!e.target.files.length) return;
 
-  files = Array.from(e.target.files);
+  state.files = Array.from(e.target.files);
 
   displayAtributes.forEach((el) => (el.style.display = "block"));
 
-  allWgsArrays = await processAllFiles({
-    firstNum,
-    coordsNXYH,
-    lastNumber,
-    output,
-    files,
-    coordSys,
-    isXY,
-  });
+  await runProcessing();
 
-  // центр карти
-  if (allWgsArrays.length) {
-    firstArrayWGS = allWgsArrays[0].wgsArray;
+  // // центр карти
+  // if (allWgsArrays.length) {
+  //   firstArrayWGS = allWgsArrays[0].wgsArray;
 
-    flattenWGSArray = flattenCoords(firstArrayWGS);
+  //   flattenWGSArray = flattenCoords(firstArrayWGS);
 
-    averageWGS = flattenWGSArray.reduce(([latAcc, lonAcc], [lat, lon], i) => {
-      if (i < flattenWGSArray.length - 1) return [latAcc + lat, lonAcc + lon];
+  //   averageWGS = flattenWGSArray.reduce(([latAcc, lonAcc], [lat, lon], i) => {
+  //     if (i < flattenWGSArray.length - 1) return [latAcc + lat, lonAcc + lon];
 
-      return [
-        (latAcc + lat) / flattenWGSArray.length,
-        (lonAcc + lon) / flattenWGSArray.length,
-      ];
-    });
+  //     return [
+  //       (latAcc + lat) / flattenWGSArray.length,
+  //       (lonAcc + lon) / flattenWGSArray.length,
+  //     ];
+  //   });
 
-    coordOfArea.textContent = averageWGS
-      .map((coord) => coord.toFixed(8))
-      .join(", ");
+  //   coordOfArea.textContent = averageWGS
+  //     .map((coord) => coord.toFixed(8))
+  //     .join(", ");
 
-    if (!mapG) {
-      mapG = await initMap();
-    }
+  //   if (!mapG) {
+  //     mapG = await initMap();
+  //   }
 
-    drawAllPolygons(allWgsArrays, lastNumber);
-    fitBoundsMulti(firstArrayWGS);
-  }
+  //   drawAllPolygons(allWgsArrays, lastNumber);
+  //   fitBoundsMulti(firstArrayWGS);
+  // }
 }
 
 async function onCopyBtn() {
   const text = coordOfArea.textContent;
-  const [lat, lng] = coordOfArea.textContent.split(", ");
+  const [lat, lng] = text.split(", ");
 
   try {
     await navigator.clipboard.writeText(text);
@@ -132,122 +134,110 @@ async function onCopyBtn() {
 }
 
 async function onChangeNumber() {
-  await processAllFiles({
-    firstNum,
-    coordsNXYH,
-    lastNumber,
-    output,
-    files,
-    coordSys,
-    isXY,
-  });
+  await runProcessing();
 }
 
 function onChangeXYBtn() {
-  isXY = isXY ? false : true;
-  if (!file || !confirm("Змінити X та Y місцями?")) return;
+  if (!state.files.length) return;
+  if (!confirm("Змінити X та Y місцями?")) return;
 
-  fileProcessing(file, coordSys, output, isXY);
+  state.isXY = !state.isXY;
+  runProcessing();
 }
 
 function onSaveBtn() {
   if (!allWgsArrays.length) return;
 
-  if (allWgsArrays.length === 1) {
-    return saveAs(
-      new Blob([output.textContent]),
-      `${allWgsArrays[0].name.slice(0, allWgsArrays[0].name.indexOf("."))}.txt`,
-    );
-  }
-  saveAs(new Blob([output.textContent]), "combined.txt");
+  const filename =
+    state.allWgsArrays.length === 1
+      ? `${state.allWgsArrays[0].name.replace(/\.[^.]+$/, "")}.txt`
+      : "combined.txt";
+
+  saveAs(new Blob([output.textContent]), filename);
 }
 
 function onSaveKMLBtn() {
-  if (!allWgsArrays.length) return;
-  const kml = multipleToKML(allWgsArrays);
-  if (allWgsArrays.length === 1) {
-    return downloadKML(kml, allWgsArrays[0].name);
-  }
-  downloadKML(kml, "combined");
+  if (!state.allWgsArrays.length) return;
+
+  const kml = multipleToKML(state.allWgsArrays);
+  const filename =
+    state.allWgsArrays.length === 1
+      ? state.allWgsArrays[0].name.replace(/\.[^.]+$/, "")
+      : "combined";
+
+  downloadKML(kml, filename);
 }
 
 function onShowMyLocationBtn() {
-  if (mapG) startWatchingLocation();
-  else alert("Спершу ініціалізуй карту!");
+  if (!state.mapInitialized) {
+    alert("Спершу ініціалізуй карту!");
+    return;
+  }
+  startWatchingLocation();
   showMyLocationBtn.style.display = "none";
   centerOnAreaBtn.style.display = "block";
 }
 
 function onCenterOnMeBtn() {
   startWatchingLocation();
-  // centerMapOnUser();
   centerOnMeBtn.style.display = "none";
   centerOnAreaBtn.style.display = "block";
 }
 
 function onCenterOnAreaBtn() {
   stopWatchingLocation();
-  fitBoundsMulti(firstArrayWGS);
+  fitBoundsMulti(state.firstArrayWGS);
   centerOnAreaBtn.style.display = "none";
   centerOnMeBtn.style.display = "block";
 }
 
-//   type: "MultiPolygon",
-//   coordinates: [
-//     [
-//       [
-//         [3366088.8250000002, 5599893.7199999997],
-//         [3366096.8700000001, 5599890.7800000003],
-//       ],
-//       [
-//         [3366080.8250000002, 5599893.7199999997],
-//         [33660974.8700000001, 5599890.7800000003],
-//       ],
-//     ],
-//   ],
-//   properties: { coordSys: "SC63" },
-// };
+// ==============================
+// Центральна функція обробки
+// ==============================
+async function runProcessing() {
+  const { allWgsArrays, coordsNXYH } = await processAllFiles({
+    firstNum,
+    output,
+    files: state.files,
+    coordSys,
+    isXY: state.isXY,
+  });
 
-// async function processAllFiles() {
-//   if (!files.length) return;
+  state.allWgsArrays = allWgsArrays;
+  state.coordsNXYH = coordsNXYH;
 
-//   firstNumberVal = Number(firstNum.value);
-//   allWgsArrays = [];
-//   coordsNXYH = [];
-//   lastNumber = firstNumberVal - 1;
+  if (!allWgsArrays.length) return;
 
-//   output.textContent = "";
+  state.firstArrayWGS = allWgsArrays[0].wgsArray;
 
-//   for (const file of files) {
-//     try {
-//       let fromNumber = firstNumberVal + coordsNXYH.length;
+  const flattenWGSArray = flattenCoords(state.firstArrayWGS);
 
-//       const { multiPolygon, arrayNXYH } = await fileProcessing({
-//         file,
-//         coordSys,
-//         output,
-//         isXY,
-//         fromNumber,
-//       });
+  const averageWGS = flattenWGSArray.reduce(
+    ([latAcc, lonAcc], [lat, lon], i) => {
+      if (i < flattenWGSArray.length - 1) return [latAcc + lat, lonAcc + lon];
+      return [
+        (latAcc + lat) / flattenWGSArray.length,
+        (lonAcc + lon) / flattenWGSArray.length,
+      ];
+    },
+  );
 
-//       const wgsArray = sk63ToWgs84(multiPolygon);
+  coordOfArea.textContent = averageWGS
+    .map((coord) => coord.toFixed(8))
+    .join(", ");
 
-//       coordsNXYH.push(...arrayNXYH);
+  if (!state.mapInitialized) {
+    await initMap();
+    state.mapInitialized = true;
+  }
 
-//       allWgsArrays.push({
-//         name: getFilenameFromFile(file),
-//         wgsArray,
-//       });
-//     } catch (err) {
-//       console.error("Помилка файлу:", file.name, err);
-//     }
-//   }
+  drawAllPolygons(allWgsArrays);
+  fitBoundsMulti(state.firstArrayWGS);
+}
 
-//   output.textContent = coordsNXYH.join("\n");
-
-//   drawAllPolygons();
-// }
-
+// ==============================
+// Блокування жестів масштабування
+// ==============================
 document.addEventListener(
   "wheel",
   function (e) {
