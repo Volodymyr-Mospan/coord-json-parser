@@ -84,15 +84,13 @@ export function stopWatchingLocation() {
 }
 
 // ===============================
-// 🔹 Малювання MultiPolygon
+// 🔹 Малювання один MultiPolygon
 // ===============================
 export async function drawMultiPolygon(
   multiPolygonCoords,
   flattenWGSArray,
   starterNum,
 ) {
-  clearMap();
-
   const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
 
   multiPolygonCoords.forEach((polygonCoords) => {
@@ -140,6 +138,8 @@ export async function drawMultiPolygon(
 // ===============================
 export function drawAllPolygons(allWgsArrays, firstNumValue = 1) {
   if (!allWgsArrays.length) return;
+
+  clearMap();
 
   let lastNumber = firstNumValue - 1;
 
