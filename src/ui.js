@@ -4,13 +4,16 @@
 const mapContainer = document.getElementById("mapContainer");
 const btnShowMap = document.getElementById("btnShowMap");
 const btnCloseMap = document.getElementById("btnCloseMap");
+const geoSection = document.querySelector(".panel__section--geolocation");
 
 btnShowMap.addEventListener("click", () => {
   mapContainer.classList.add("is-open");
+  geoSection?.classList.add("on-map");
 });
 
 btnCloseMap.addEventListener("click", () => {
   mapContainer.classList.remove("is-open");
+  geoSection?.classList.remove("on-map");
 });
 
 // ==============================
@@ -46,12 +49,16 @@ document.addEventListener("gestureend", (e) => e.preventDefault());
 
 document.addEventListener(
   "wheel",
-  (e) => { if (e.ctrlKey) e.preventDefault(); },
+  (e) => {
+    if (e.ctrlKey) e.preventDefault();
+  },
   { passive: false },
 );
 
 document.addEventListener(
   "touchmove",
-  (e) => { if (e.scale !== undefined && e.scale !== 1) e.preventDefault(); },
+  (e) => {
+    if (e.scale !== undefined && e.scale !== 1) e.preventDefault();
+  },
   { passive: false },
 );

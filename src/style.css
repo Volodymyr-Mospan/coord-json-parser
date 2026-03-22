@@ -353,12 +353,12 @@ button,
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 10px;
-  max-height: 220px;
+  max-height: 350px;
   overflow: auto;
   white-space: pre-wrap;
   word-break: break-word;
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.6;
   color: var(--text);
 }
@@ -451,6 +451,37 @@ button,
   /* Кнопка "Показати мапу" — тільки на мобільному */
   #btnShowMap {
     display: flex;
+  }
+
+  /* Секція геолокації — прихована в панелі на мобільному */
+  .panel__section--geolocation {
+    display: none !important;
+  }
+
+  /* Коли карта відкрита — секція геолокації виїжджає поверх карти */
+  .map-container.is-open ~ .panel-geolocation-portal,
+  body.map-open .panel__section--geolocation {
+    display: flex !important;
+  }
+
+  /* Секція геолокації поверх карти */
+  .panel__section--geolocation.on-map {
+    display: flex !important;
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 600;
+    border: none;
+    background: transparent;
+    padding: 0;
+    gap: 10px;
+    width: auto;
+  }
+
+  .panel__section--geolocation.on-map .btn {
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(6px);
   }
 
   .output {
