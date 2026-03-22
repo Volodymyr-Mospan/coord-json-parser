@@ -138,13 +138,12 @@ export async function drawMultiPolygon(
 // ===============================
 // 🔹 Малювання всіх MultiPolygon
 // ===============================
-export function drawAllPolygons(allWgsArrays, lastNumber) {
+export function drawAllPolygons(allWgsArrays, firstNumValue = 1) {
   if (!allWgsArrays.length) return;
-  lastNumber = Number(firstNum.value) - 1;
 
-  if (mapG) {
-    clearMap();
-  }
+  clearMap();
+
+  let lastNumber = firstNumValue - 1;
 
   allWgsArrays.forEach(({ wgsArray }) => {
     const flattenArray = flattenCoords(wgsArray);

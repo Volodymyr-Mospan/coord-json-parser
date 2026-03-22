@@ -1,6 +1,6 @@
 import "./style.css";
 import { saveAs } from "file-saver";
-import { fileProcessing, processAllFiles } from "./fileProcessing.js";
+import { processAllFiles } from "./fileProcessing.js";
 import {
   drawAllPolygons,
   fitBoundsMulti,
@@ -64,33 +64,6 @@ async function onReadFile(e) {
   displayAtributes.forEach((el) => (el.style.display = "block"));
 
   await runProcessing();
-
-  // // центр карти
-  // if (allWgsArrays.length) {
-  //   firstArrayWGS = allWgsArrays[0].wgsArray;
-
-  //   flattenWGSArray = flattenCoords(firstArrayWGS);
-
-  //   averageWGS = flattenWGSArray.reduce(([latAcc, lonAcc], [lat, lon], i) => {
-  //     if (i < flattenWGSArray.length - 1) return [latAcc + lat, lonAcc + lon];
-
-  //     return [
-  //       (latAcc + lat) / flattenWGSArray.length,
-  //       (lonAcc + lon) / flattenWGSArray.length,
-  //     ];
-  //   });
-
-  //   coordOfArea.textContent = averageWGS
-  //     .map((coord) => coord.toFixed(8))
-  //     .join(", ");
-
-  //   if (!mapG) {
-  //     mapG = await initMap();
-  //   }
-
-  //   drawAllPolygons(allWgsArrays, lastNumber);
-  //   fitBoundsMulti(firstArrayWGS);
-  // }
 }
 
 async function onCopyBtn() {
@@ -146,7 +119,7 @@ function onChangeXYBtn() {
 }
 
 function onSaveBtn() {
-  if (!allWgsArrays.length) return;
+  if (!state.allWgsArrays.length) return;
 
   const filename =
     state.allWgsArrays.length === 1
@@ -231,7 +204,7 @@ async function runProcessing() {
     state.mapInitialized = true;
   }
 
-  drawAllPolygons(allWgsArrays);
+  drawAllPolygons(allWgsArrays, Number(firstNum.value));
   fitBoundsMulti(state.firstArrayWGS);
 }
 
