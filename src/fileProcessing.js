@@ -1,5 +1,4 @@
 import { createNXYH } from "./createNXYH.js";
-import { drawAllPolygons } from "./maps/google_maps/google_maps.js";
 import { sk63ToWgs84 } from "./sc_63_to_WGS/transformFunctions.js";
 import { flattenCoords, getFilenameFromFile } from "./utilities/utilities.js";
 
@@ -39,7 +38,6 @@ export async function processAllFiles({
   }
 
   output.textContent = coordsNXYH.join("\n");
-  drawAllPolygons(allWgsArrays);
   return { allWgsArrays, coordsNXYH };
 }
 
