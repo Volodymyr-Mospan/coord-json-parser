@@ -57,7 +57,7 @@ body {
   border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
+  overflow: hidden; /* було overflow-y: auto — прибираємо звідси */
   overflow-x: hidden;
   gap: 0;
 }
@@ -344,6 +344,15 @@ button,
   border-color: var(--accent);
 }
 
+/* Секція з output — розтягується на все вільне місце */
+.panel__section--output {
+  flex: 1;
+  min-height: 0; /* критично для flex дітей */
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
 /* ============================================================
    OUTPUT
    ============================================================ */
@@ -353,12 +362,14 @@ button,
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 10px;
-  max-height: 350px;
+  flex: 1; /* займає весь простір секції */
+  min-height: 0; /* дозволяє flex-дитині стискатись */
   overflow: auto;
   white-space: pre-wrap;
   word-break: break-word;
   font-family: var(--font-mono);
   font-size: 14px;
+  letter-spacing: 0.5px;
   line-height: 1.6;
   color: var(--text);
 }
@@ -425,7 +436,7 @@ button,
     min-width: unset;
     height: 100dvh;
     border-right: none;
-    overflow-y: auto;
+    overflow: hidden;
     flex-shrink: 0;
   }
 
@@ -485,6 +496,6 @@ button,
   }
 
   .output {
-    max-height: 150px;
+    max-height: none; /* вже контролюється через flex */
   }
 }
