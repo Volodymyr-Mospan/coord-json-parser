@@ -1,117 +1,459 @@
+/* ============================================================
+   COORD PARSER — Dark Utilitarian / Field Tool Aesthetic
+   ============================================================ */
+
+:root {
+  --bg: #0f1117;
+  --bg-panel: #171b24;
+  --bg-raised: #1e2330;
+  --border: #2a3040;
+  --accent: #00d4aa;
+  --accent-dim: #00d4aa22;
+  --danger: #ff4f4f;
+  --text: #d4dce8;
+  --text-dim: #6b7a94;
+  --text-bright: #eef2f8;
+  --font-ui: "Fira Sans Condensed", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+  --panel-w: 400px;
+  --radius: 6px;
+  --gap: 10px;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
+html,
 body {
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #f8f9fa;
-  color: #212529;
-  padding: 0 2rem;
-  /* line-height: 1.5; */
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: var(--font-ui);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 15px;
+}
+
+/* ============================================================
+   LAYOUT
+   ============================================================ */
+
+.app {
+  display: flex;
+  height: 100dvh;
+  width: 100vw;
+}
+
+/* SIDEBAR */
+.panel {
+  width: var(--panel-w);
+  min-width: var(--panel-w);
+  background: var(--bg-panel);
+  border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
-  min-height: 90dvh;
-  text-align: center;
+  overflow-y: auto;
+  overflow-x: hidden;
+  gap: 0;
 }
 
-h1 {
-  margin-bottom: 1rem;
-  color: #343a40;
-  font-size: 2rem;
-  text-align: center;
+.panel::-webkit-scrollbar {
+  width: 4px;
+}
+.panel::-webkit-scrollbar-track {
+  background: transparent;
+}
+.panel::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 2px;
 }
 
-input[type="file"],
-input[type="number"] {
-  display: block;
-  margin: 0.5rem auto 1rem;
-  padding: 0.6rem;
-  font-size: 1rem;
-  border: 1px solid #ced4da;
-  border-radius: 6px;
-  background-color: #fff;
-  transition: border-color 0.3s;
-  width: 100%;
-  max-width: 320px;
-}
-
-input[type="number"]:focus,
-input[type="file"]:focus {
-  outline: none;
-  border-color: #0d6efd;
-}
-
-label {
-  display: block;
-  text-align: center;
-  margin-top: 1rem;
-  margin-bottom: 0.3rem;
-  font-weight: 500;
-}
-
-button {
-  display: block;
-  margin: 1.5rem auto;
-  padding: 0.7rem 1.4rem;
-  background-color: #0d6efd;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  width: 100%;
-  max-width: 200px;
-}
-
-button:hover {
-  background-color: #0b5ed7;
-}
-
-pre.output {
-  background-color: #e9ecef;
-  padding: 1rem;
-  margin-top: 2rem;
-  white-space: pre-wrap;
-  word-wrap: break-word;
-  border-radius: 8px;
-  max-width: 100%;
-  /* width: 100%; */
-  max-height: 400px;
-  overflow: auto;
-  font-family: Consolas, monospace;
-  text-align: left;
-  border: 1px solid #dee2e6;
-}
-
-/* Адаптивність */
-@media (max-width: 600px) {
-  body {
-    padding: 1rem;
-  }
-
-  h1 {
-    font-size: 1.5rem;
-  }
-
-  input,
-  button {
-    font-size: 1rem;
-  }
-
-  pre.output {
-    font-size: 0.9rem;
-    max-height: 300px;
-  }
+/* MAP */
+.map-container {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
 }
 
 #mapG {
-  flex: 1;
   width: 100%;
-  min-height: 600px;
-  margin-top: 1rem;
+  height: 100%;
+}
 
-  touch-action: none;
+.map-empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--text-dim);
+  font-family: var(--font-ui);
+  font-size: 15px;
+  background: var(--bg);
+  pointer-events: none;
+}
+
+.map-empty__icon {
+  font-size: 48px;
+  opacity: 0.2;
+}
+
+/* ============================================================
+   PANEL COMPONENTS
+   ============================================================ */
+
+.panel__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 14px 12px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.panel__logo {
+  font-size: 22px;
+  color: var(--accent);
+  line-height: 1;
+}
+
+.panel__title {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  color: var(--text-bright);
+  flex: 1;
+}
+
+.panel__version {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-dim);
+  background: var(--bg-raised);
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+.panel__section {
+  padding: var(--gap) 14px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
+.panel__section--row {
+  flex-direction: row;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.panel__footer {
+  margin-top: auto;
+  padding: 10px 14px;
+  font-size: 12px;
+  color: var(--text-dim);
+  border-top: 1px solid var(--border);
+  font-family: var(--font-mono);
+}
+
+/* ============================================================
+   DROP ZONE
+   ============================================================ */
+
+.drop-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 16px;
+  border: 1.5px dashed var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition:
+    border-color 0.2s,
+    background 0.2s;
+  text-align: center;
+}
+
+.drop-zone:hover,
+.drop-zone--active {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+}
+
+.drop-zone__icon {
+  font-size: 22px;
+  color: var(--accent);
+  line-height: 1;
+}
+
+.drop-zone__text {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-bright);
+}
+
+.drop-zone__hint {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+/* ============================================================
+   COORD SYS INFO
+   ============================================================ */
+
+.coord-sys {
+  padding: 6px 14px;
+  font-size: 12px;
+  color: var(--accent);
+  font-family: var(--font-mono);
+  background: var(--accent-dim);
+  border-bottom: 1px solid var(--border);
+}
+
+/* ============================================================
+   INFO ROW
+   ============================================================ */
+
+.info-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.info-row__label {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.info-row__value {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--accent);
+  word-break: break-all;
+}
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+
+button,
+.btn {
+  font-family: var(--font-ui);
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  padding: 9px 13px;
+  transition:
+    background 0.15s,
+    color 0.15s,
+    border-color 0.15s;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.btn--full {
+  width: 100%;
+}
+
+.btn--primary {
+  background: var(--accent);
+  color: #0a1a15;
+}
+.btn--primary:hover {
+  background: #00f0c5;
+}
+
+.btn--ghost {
+  background: var(--bg-raised);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+.btn--ghost:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.btn--accent {
+  background: var(--accent-dim);
+  color: var(--accent);
+  border: 1px solid var(--accent);
+}
+.btn--accent:hover {
+  background: var(--accent);
+  color: #0a1a15;
+}
+
+.btn--square {
+  width: 42px;
+  min-width: 42px;
+  padding: 9px 0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   FIELD (label + input)
+   ============================================================ */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.field__label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-dim);
+}
+
+.field__input {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  background: var(--bg-raised);
+  color: var(--text-bright);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 7px 10px;
+  width: 100%;
+  transition: border-color 0.2s;
+}
+
+.field__input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+/* ============================================================
+   OUTPUT
+   ============================================================ */
+
+.output {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px;
+  max-height: 220px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text);
+}
+
+.output::-webkit-scrollbar {
+  width: 4px;
+}
+.output::-webkit-scrollbar-track {
+  background: transparent;
+}
+.output::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 2px;
+}
+
+/* ============================================================
+   MOBILE MAP TOGGLE BUTTON (видима тільки на мобільному)
+   ============================================================ */
+
+#btnShowMap {
+  display: none;
+}
+
+/* Кнопка закрити карту — прихована за замовчуванням */
+#btnCloseMap {
+  display: none;
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 1000;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  color: var(--text-bright);
+  font-size: 20px;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+
+#btnCloseMap:hover {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: #fff;
+}
+
+/* ============================================================
+   MOBILE LAYOUT
+   ============================================================ */
+
+@media (max-width: 640px) {
+  .app {
+    flex-direction: column;
+  }
+
+  /* Панель — повний екран, прокручується */
+  .panel {
+    width: 100%;
+    min-width: unset;
+    height: 100dvh;
+    border-right: none;
+    overflow-y: auto;
+    flex-shrink: 0;
+  }
+
+  /* Карта — прихована overlay поверх всього */
+  .map-container {
+    position: fixed;
+    inset: 0;
+    z-index: 500;
+    display: none;
+    flex: unset;
+  }
+
+  /* Коли відкрита — показуємо */
+  .map-container.is-open {
+    display: block;
+  }
+
+  /* Кнопка закрити — показується коли карта відкрита */
+  .map-container.is-open #btnCloseMap {
+    display: flex;
+  }
+
+  /* Кнопка "Показати мапу" — тільки на мобільному */
+  #btnShowMap {
+    display: flex;
+  }
+
+  .output {
+    max-height: 150px;
+  }
 }

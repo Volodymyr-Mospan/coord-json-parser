@@ -15,7 +15,7 @@ import { downloadKML, multipleToKML } from "./utilities/saveKML.js";
 // DOM
 // ==============================
 const fileInput = document.getElementById("fileInput");
-const coordSys = document.querySelector(".coordinate_system");
+const coordSys = document.querySelector(".coord-sys");
 const coordOfArea = document.querySelector(".coordinate_of_area");
 const output = document.getElementById("output");
 const firstNum = document.getElementById("firstNum");
@@ -27,6 +27,8 @@ const displayAtributes = document.querySelectorAll('[data-js="display"]');
 const showMyLocationBtn = document.getElementById("showMyLocation");
 const centerOnMeBtn = document.getElementById("centerOnMe");
 const centerOnAreaBtn = document.getElementById("centerOnArea");
+const mapEmpty = document.getElementById("mapEmpty");
+const mapG = document.getElementById("mapG");
 
 // ==============================
 // Стан застосунку в одному об'єкті
@@ -61,7 +63,11 @@ async function onReadFile(e) {
 
   state.files = Array.from(e.target.files);
 
-  displayAtributes.forEach((el) => (el.style.display = "block"));
+  displayAtributes.forEach((el) => (el.style.display = ""));
+
+  // Показуємо карту на десктопі, ховаємо заглушку
+  if (mapEmpty) mapEmpty.style.display = "none";
+  if (mapG) mapG.style.display = "block";
 
   await runProcessing();
 }
@@ -207,24 +213,3 @@ async function runProcessing() {
   drawAllPolygons(allWgsArrays, Number(firstNum.value));
   fitBoundsMulti(state.firstArrayWGS);
 }
-
-// ==============================
-// Блокування жестів масштабування
-// ==============================
-document.addEventListener(
-  "wheel",
-  function (e) {
-    if (e.ctrlKey) e.preventDefault();
-  },
-  { passive: false },
-);
-
-document.addEventListener(
-  "touchmove",
-  function (e) {
-    if (e.scale !== undefined && e.scale !== 1) {
-      e.preventDefault();
-    }
-  },
-  { passive: false },
-);

@@ -161,11 +161,13 @@ function createMarkerLabel(number) {
   div.style.background = "#ffffffea";
   div.style.border = "2px solid red";
   div.style.borderRadius = "50%";
-  div.style.width = "22px";
+  div.style.minWidth = "22px";
   div.style.height = "22px";
+  div.style.padding = "3px";
   div.style.display = "flex";
   div.style.alignItems = "center";
   div.style.justifyContent = "center";
+  div.style.color = "#000000";
   div.style.fontSize = "14px";
   div.style.fontWeight = "bold";
   div.style.boxShadow = "0 2px 6px rgba(0,0,0,0.3)";
