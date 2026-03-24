@@ -4,6 +4,7 @@ import { POINTSz1 } from "./sc63_zone1";
 import { POINTSz2 } from "./sc63_zone2";
 import { POINTSz3 } from "./sc63_zone3";
 import { POINTSz4 } from "./sc63_zone4";
+import { POINTSsk42loc85 } from "./sc42_loc85";
 import { deepEqual } from "../utilities/utilities";
 
 proj4.defs("WGS84", "+proj=longlat +datum=WGS84 +no_defs");
@@ -67,42 +68,48 @@ function preparationHelmertParams(points, proj4ZoneParam) {
 }
 
 // --- основна функція/застосування
-export function sk63ToWgs84(coordArray) {
-  let numberOfZone = (function lookingZoneNumber(c) {
-    if (!Array.isArray(c)) return;
-    if (c.length && typeof c[0] === "number") {
-      return c.toString()[0];
-    } else {
-      if (Array.isArray(c[0])) return lookingZoneNumber(c[0]);
-    }
-  })(coordArray);
-
+// coordSys — рядок з jsonData.properties.coordSys (наприклад "SC42")
+// якщо не передано — визначає зону СК-63 за першою цифрою координати
+export function sk63ToWgs84(coordArray, coordSys) {
   let proj4ZoneParam;
   let helmertParams;
 
-  switch (numberOfZone) {
-    case "1":
-      proj4ZoneParam = "SK63_ZONE1";
-      helmertParams = preparationHelmertParams(POINTSz1, proj4ZoneParam);
-      break;
+  if (coordSys === "SC42") {
+    // СК-42 локальна Київ 1985
+    proj4ZoneParam = "SK42_LOC85";
+    helmertParams = preparationHelmertParams(POINTSsk42loc85, proj4ZoneParam);
+  } else {
+    // СК-63: визначаємо зону за першою цифрою координати
+    const numberOfZone = (function lookingZoneNumber(c) {
+      if (!Array.isArray(c)) return;
+      if (c.length && typeof c[0] === "number") {
+        return c.toString()[0];
+      } else {
+        if (Array.isArray(c[0])) return lookingZoneNumber(c[0]);
+      }
+    })(coordArray);
 
-    case "2":
-      proj4ZoneParam = "SK63_ZONE2";
-      helmertParams = preparationHelmertParams(POINTSz2, proj4ZoneParam);
-      break;
-
-    case "3":
-      proj4ZoneParam = "SK63_ZONE3";
-      helmertParams = preparationHelmertParams(POINTSz3, proj4ZoneParam);
-      break;
-
-    case "4":
-      proj4ZoneParam = "SK63_ZONE4";
-      helmertParams = preparationHelmertParams(POINTSz4, proj4ZoneParam);
-      break;
-
-    default:
-      break;
+    switch (numberOfZone) {
+      case "1":
+        proj4ZoneParam = "SK63_ZONE1";
+        helmertParams = preparationHelmertParams(POINTSz1, proj4ZoneParam);
+        break;
+      case "2":
+        proj4ZoneParam = "SK63_ZONE2";
+        helmertParams = preparationHelmertParams(POINTSz2, proj4ZoneParam);
+        break;
+      case "3":
+        proj4ZoneParam = "SK63_ZONE3";
+        helmertParams = preparationHelmertParams(POINTSz3, proj4ZoneParam);
+        break;
+      case "4":
+        proj4ZoneParam = "SK63_ZONE4";
+        helmertParams = preparationHelmertParams(POINTSz4, proj4ZoneParam);
+        break;
+      default:
+        console.error("Невідома зона СК-63:", numberOfZone);
+        return coordArray;
+    }
   }
 
   const [dx, dy, dz, rx, ry, rz, m] = helmertParams;
@@ -150,5 +157,6 @@ export function sk63ToWgs84(coordArray) {
     return { lat: finalLat, lng: finalLng };
   }
 
+  console.log("🚀 ~ sk63ToWgs84 ~ wgsMultiPolygon:", wgsMultiPolygon);
   return wgsMultiPolygon;
 }

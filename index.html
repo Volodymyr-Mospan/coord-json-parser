@@ -23,7 +23,7 @@
         <header class="panel__header">
           <span class="panel__logo">⌖</span>
           <span class="panel__title">COORD PARSER</span>
-          <span class="panel__version">v0.3.11</span>
+          <span class="panel__version">v0.3.12</span>
         </header>
 
         <!-- Завантаження файлів -->
@@ -147,6 +147,9 @@
           <p>Завантажте JSON-файл координат</p>
         </div>
       </main>
+
+      <!-- Dev button (hidden) class="btn btn--primary btn--full" -->
+      <button id="dev" type="button" style="display: none">dev</button>
     </div>
 
     <!-- Модальне вікно виводу координат -->
@@ -163,6 +166,7 @@
             ✕
           </button>
         </div>
+
         <pre
           class="output output-modal__content"
           id="outputModalContent"
@@ -170,9 +174,6 @@
         ></pre>
       </div>
     </div>
-
-    <!-- Dev button (hidden) -->
-    <button id="dev" type="button" style="display: none">dev</button>
 
     <script type="module" src="/src/main.js"></script>
     <script type="module" src="./src/maps/google_maps/gm.js"></script>
