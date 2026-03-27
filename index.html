@@ -15,8 +15,8 @@
       href="https://fonts.googleapis.com/css2?family=Fira+Sans+Condensed:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap"
       rel="stylesheet"
     />
-    <script type="module" crossorigin src="/coord-json-parser/assets/index-DejXbCxt.js"></script>
-    <link rel="stylesheet" crossorigin href="/coord-json-parser/assets/index-BNlzxj_k.css">
+    <script type="module" crossorigin src="/coord-json-parser/assets/index-DT9cEAjp.js"></script>
+    <link rel="stylesheet" crossorigin href="/coord-json-parser/assets/index-DY553ljn.css">
   </head>
   <body>
     <div class="app">
@@ -25,7 +25,7 @@
         <header class="panel__header">
           <span class="panel__logo">⌖</span>
           <span class="panel__title">COORD PARSER</span>
-          <span class="panel__version">v0.3.13</span>
+          <span class="panel__version">v0.3.14</span>
         </header>
 
         <!-- Завантаження файлів -->
@@ -42,14 +42,20 @@
         <p class="coord-sys" data-js="display" style="display: none"></p>
 
         <!-- Центр ділянки -->
-        <section class="panel__section" data-js="display" style="display: none">
+        <section
+          class="panel__section panel__section--row panel__section--navigation"
+          data-js="display"
+          style="display: none"
+        >
           <div class="info-row">
             <span class="info-row__label">Центр</span>
-            <b class="coordinate_of_area info-row__value"></b>
+            <a
+              href="#"
+              title="Натисніть щоб скопіювати"
+              class="coordinate_of_area info-row__value"
+            ></a>
           </div>
-          <button id="copyCoords" class="btn btn--primary btn--full">
-            📋 Копіювати / Навігація
-          </button>
+          <button id="navBtn" class="btn btn--primary">🚗 Навігація</button>
         </section>
 
         <!-- Нумерація + XY -->
@@ -128,6 +134,10 @@
           >
             ⌖ До ділянки
           </button>
+
+          <button id="rulerBtn" class="btn btn--ghost btn--full">
+            📏 Лінійка
+          </button>
         </section>
 
         <!-- Кнопка відкрити карту (тільки мобільний) -->
@@ -138,11 +148,6 @@
         </section>
 
         <!-- Лінійка -->
-        <section class="panel__section" data-js="display" style="display: none">
-          <button id="rulerBtn" class="btn btn--ghost btn--full">
-            📏 Лінійка
-          </button>
-        </section>
 
         <footer class="panel__footer">Моспан Володимир</footer>
       </aside>
@@ -183,6 +188,6 @@
         ></pre>
       </div>
     </div>
-
+
   </body>
 </html>
