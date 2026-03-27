@@ -23,7 +23,7 @@ const coordSys = document.querySelector(".coord-sys");
 const coordOfArea = document.querySelector(".coordinate_of_area");
 const output = document.getElementById("output");
 const firstNum = document.getElementById("firstNum");
-const copyBtn = document.getElementById("copyCoords");
+const navBtnEl = document.getElementById("navBtn");
 const changeXYBtn = document.getElementById("changeXYBtn");
 const saveBtn = document.getElementById("saveBtn");
 const saveKMLBtn = document.getElementById("saveKMLBtn");
@@ -51,7 +51,8 @@ const state = {
 // Events
 // ==============================
 fileInput.addEventListener("change", onReadFile);
-copyBtn.addEventListener("click", onCopyBtn);
+coordOfArea.addEventListener("click", onCopyBtn);
+navBtnEl.addEventListener("click", onNavigateBtn);
 firstNum.addEventListener("change", onChangeNumber);
 changeXYBtn.addEventListener("click", onChangeXYBtn);
 saveBtn.addEventListener("click", onSaveBtn);
@@ -84,9 +85,9 @@ async function onReadFile(e) {
   }
 }
 
-async function onCopyBtn() {
+async function onCopyBtn(e) {
+  e.preventDefault();
   const text = coordOfArea.textContent;
-  const [lat, lng] = text.split(", ");
 
   try {
     await navigator.clipboard.writeText(text);
@@ -101,12 +102,16 @@ async function onCopyBtn() {
     document.execCommand("copy");
     document.body.removeChild(textarea);
   }
-  copyBtn.textContent = "Скопійовано!";
+  // copyBtn.textContent = "Скопійовано!";
 
-  setTimeout(() => {
-    copyBtn.textContent = "Копі / Навігація";
-  }, 1500);
+  // setTimeout(() => {
+  //   copyBtn.textContent = "Копі / Навігація";
+  // }, 1500);
+}
 
+async function onNavigateBtn() {
+  const text = coordOfArea.textContent;
+  const [lat, lng] = text.split(", ");
   const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
   const isAndroid = /Android/i.test(navigator.userAgent);
 

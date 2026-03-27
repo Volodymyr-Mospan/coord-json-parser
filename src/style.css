@@ -227,6 +227,7 @@ body {
 .info-row {
   display: flex;
   flex-direction: column;
+  flex-grow: 1;
   gap: 2px;
 }
 
@@ -242,6 +243,16 @@ body {
   font-size: 13px;
   color: var(--accent);
   word-break: break-all;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.info-row__value:hover {
+  color: #00f0c5;
+}
+
+.info-row__value:active {
+  text-shadow: #00d4aa 1px 0 10px;
 }
 
 /* ============================================================

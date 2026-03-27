@@ -5,6 +5,11 @@ let polygons = [];
 let markers = [];
 let infoWindow;
 
+const rulerSettings = {
+  insertMode: "segment", // "segment" | "end"
+  snapDistance: 10, // в метрах
+};
+
 // 🔹 Ініціалізація карти
 export async function initMap() {
   const { Map } = await google.maps.importLibrary("maps");
@@ -16,6 +21,11 @@ export async function initMap() {
     mapTypeId: "satellite",
   });
   infoWindow = new google.maps.InfoWindow();
+
+  map.setOptions({
+    cursor: "crosshair",
+  });
+
   return map;
 }
 
@@ -429,7 +439,7 @@ async function rulerRedraw() {
       map,
       position: rulerPoints[i],
       draggable: true,
-      cursor: "grab",
+      cursor: "pointer",
       icon: {
         path: google.maps.SymbolPath.CIRCLE,
         scale: i === 0 ? 6 : 5,
@@ -456,12 +466,21 @@ async function rulerRedraw() {
       rulerUpdateLines();
     });
 
+    // ✕ Видалення точки — подвійний клік (десктоп)
+    dot.addListener("dblclick", () => {
+      rulerPoints.splice(i, 1);
+      rulerRedraw();
+    });
+
     rulerDots.push(dot);
   }
 
   // лінії та підписи
   rulerUpdateLines();
 }
+
+let rulerLongPressTimer = null;
+let rulerTouchListener = null;
 
 // Увімкнути лінійку
 export async function rulerStart() {
@@ -471,9 +490,90 @@ export async function rulerStart() {
   map.setOptions({ cursor: "crosshair" });
 
   rulerClickListener = map.addListener("click", async (e) => {
-    rulerPoints.push({ lat: e.latLng.lat(), lng: e.latLng.lng() });
+    let newPoint = { lat: e.latLng.lat(), lng: e.latLng.lng() };
+
+    // SNAP
+    newPoint = snapToExisting(newPoint, rulerPoints);
+
+    if (rulerPoints.length < 2 || rulerSettings.insertMode === "end") {
+      rulerPoints.push(newPoint);
+    } else {
+      const { insertIndex } = findClosestSegment(newPoint, rulerPoints);
+      rulerPoints.splice(insertIndex, 0, newPoint);
+    }
+
     await rulerRedraw();
   });
+
+  // Довгий тап на мобільному — видаляємо найближчу точку
+  const mapDiv = document.getElementById("mapG");
+
+  const onTouchStart = (e) => {
+    if (e.touches.length !== 1) return;
+    const touch = e.touches[0];
+
+    rulerLongPressTimer = setTimeout(() => {
+      // Знаходимо найближчу точку лінійки до місця тапу
+      const tapLatLng = pixelToLatLng(touch.clientX, touch.clientY);
+      if (!tapLatLng) return;
+
+      let minDist = Infinity;
+      let minIdx = -1;
+      rulerPoints.forEach((p, idx) => {
+        const d = google.maps.geometry.spherical.computeDistanceBetween(
+          new google.maps.LatLng(p),
+          new google.maps.LatLng(tapLatLng),
+        );
+        if (d < minDist) {
+          minDist = d;
+          minIdx = idx;
+        }
+      });
+
+      // Видаляємо тільки якщо тапнули близько (в межах ~30 px ≈ ~20 м при zoom 18)
+      const threshold = 40 / Math.pow(2, map.getZoom() - 10);
+      if (minIdx >= 0 && minDist < threshold) {
+        rulerPoints.splice(minIdx, 1);
+        rulerRedraw();
+      }
+    }, 600);
+  };
+
+  const onTouchEnd = () => clearTimeout(rulerLongPressTimer);
+
+  mapDiv.addEventListener("touchstart", onTouchStart, { passive: true });
+  mapDiv.addEventListener("touchend", onTouchEnd, { passive: true });
+  mapDiv.addEventListener("touchmove", onTouchEnd, { passive: true });
+
+  rulerTouchListener = { mapDiv, onTouchStart, onTouchEnd };
+}
+
+// Конвертація px координат екрану в LatLng
+function pixelToLatLng(clientX, clientY) {
+  try {
+    const mapDiv = document.getElementById("mapG");
+    const rect = mapDiv.getBoundingClientRect();
+    const x = clientX - rect.left;
+    const y = clientY - rect.top;
+
+    const projection = map.getProjection();
+    const bounds = map.getBounds();
+    const ne = bounds.getNorthEast();
+    const sw = bounds.getSouthWest();
+
+    const scale = Math.pow(2, map.getZoom());
+    const nePx = projection.fromLatLngToPoint(ne);
+    const swPx = projection.fromLatLngToPoint(sw);
+    const mapWidth = (nePx.x - swPx.x) * scale;
+    const mapHeight = (swPx.y - nePx.y) * scale;
+
+    const pointX = swPx.x + ((x / rect.width) * mapWidth) / scale;
+    const pointY = nePx.y + ((y / rect.height) * mapHeight) / scale;
+
+    return projection.fromPointToLatLng(new google.maps.Point(pointX, pointY));
+  } catch {
+    return null;
+  }
 }
 
 // Вимкнути і очистити лінійку
@@ -486,6 +586,16 @@ export function rulerStop() {
   if (rulerClickListener) {
     google.maps.event.removeListener(rulerClickListener);
     rulerClickListener = null;
+  }
+
+  // Прибираємо touch listeners
+  clearTimeout(rulerLongPressTimer);
+  if (rulerTouchListener) {
+    const { mapDiv, onTouchStart, onTouchEnd } = rulerTouchListener;
+    mapDiv.removeEventListener("touchstart", onTouchStart);
+    mapDiv.removeEventListener("touchend", onTouchEnd);
+    mapDiv.removeEventListener("touchmove", onTouchEnd);
+    rulerTouchListener = null;
   }
 
   if (rulerPolyline) {
@@ -515,4 +625,108 @@ export function rulerStop() {
 
 export function rulerIsActive() {
   return rulerActive;
+}
+
+// пошук сегмента
+// function findClosestSegmentIndex(point, points) {
+//   const spherical = google.maps.geometry.spherical;
+
+//   let minDist = Infinity;
+//   let insertIndex = points.length;
+
+//   for (let i = 0; i < points.length - 1; i++) {
+//     const a = new google.maps.LatLng(points[i]);
+//     const b = new google.maps.LatLng(points[i + 1]);
+//     const p = new google.maps.LatLng(point);
+
+//     // Відстань до відрізка (через midpoint як спрощення)
+//     const mid = google.maps.geometry.spherical.interpolate(a, b, 0.5);
+
+//     const dist = spherical.computeDistanceBetween(p, mid);
+
+//     if (dist < minDist) {
+//       minDist = dist;
+//       insertIndex = i + 1;
+//     }
+//   }
+
+//   return insertIndex;
+// }
+
+// пошук сегмента
+function findClosestSegment(point, points) {
+  const spherical = google.maps.geometry.spherical;
+
+  let minDist = Infinity;
+  let insertIndex = points.length;
+  let segmentIndex = -1;
+
+  const isClosed = points.length >= 3; // полігон
+
+  const totalSegments = isClosed
+    ? points.length // включає останній→перший
+    : points.length - 1;
+
+  for (let i = 0; i < totalSegments; i++) {
+    const a = points[i];
+    const b = points[(i + 1) % points.length]; // 🔥 ключ
+
+    const proj = projectPointOnSegment(point, a, b);
+
+    const dist = spherical.computeDistanceBetween(
+      new google.maps.LatLng(point),
+      new google.maps.LatLng(proj),
+    );
+
+    if (dist < minDist) {
+      minDist = dist;
+
+      // 🔥 важливо для вставки
+      insertIndex = (i + 1) % points.length;
+      segmentIndex = i;
+    }
+  }
+
+  return { insertIndex, segmentIndex };
+}
+
+function projectPointOnSegment(p, a, b) {
+  const toRad = (d) => (d * Math.PI) / 180;
+
+  const ax = toRad(a.lng);
+  const ay = toRad(a.lat);
+  const bx = toRad(b.lng);
+  const by = toRad(b.lat);
+  const px = toRad(p.lng);
+  const py = toRad(p.lat);
+
+  const ABx = bx - ax;
+  const ABy = by - ay;
+  const APx = px - ax;
+  const APy = py - ay;
+
+  const ab2 = ABx * ABx + ABy * ABy;
+  const t = Math.max(0, Math.min(1, (APx * ABx + APy * ABy) / ab2));
+
+  return {
+    lat: a.lat + (b.lat - a.lat) * t,
+    lng: a.lng + (b.lng - a.lng) * t,
+  };
+}
+
+function snapToExisting(point, points) {
+  const spherical = google.maps.geometry.spherical;
+
+  for (let p of points) {
+    const dist = spherical.computeDistanceBetween(
+      new google.maps.LatLng(point),
+      new google.maps.LatLng(p),
+    );
+
+    if (dist < rulerSettings.snapDistance) {
+      return p;
+    }
+  }
+
+  return point;
 }
