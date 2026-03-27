@@ -7,6 +7,9 @@ import {
   initMap,
   startWatchingLocation,
   stopWatchingLocation,
+  rulerStart,
+  rulerStop,
+  rulerIsActive,
 } from "./maps/google_maps/google_maps.js";
 import { flattenCoords } from "./utilities/utilities.js";
 import { downloadKML, multipleToKML } from "./utilities/saveKML.js";
@@ -30,6 +33,7 @@ const centerOnMeBtn = document.getElementById("centerOnMe");
 const centerOnAreaBtn = document.getElementById("centerOnArea");
 const mapEmpty = document.getElementById("mapEmpty");
 const mapG = document.getElementById("mapG");
+const rulerBtn = document.getElementById("rulerBtn");
 
 // ==============================
 // Стан застосунку в одному об'єкті
@@ -55,6 +59,7 @@ saveKMLBtn.addEventListener("click", onSaveKMLBtn);
 showMyLocationBtn.addEventListener("click", onShowMyLocationBtn);
 centerOnMeBtn.addEventListener("click", onCenterOnMeBtn);
 centerOnAreaBtn.addEventListener("click", onCenterOnAreaBtn);
+rulerBtn.addEventListener("click", onRulerBtn);
 
 // ==============================
 // Handlers
@@ -176,6 +181,32 @@ function onCenterOnAreaBtn() {
   centerOnAreaBtn.style.display = "none";
   centerOnMeBtn.style.display = "block";
 }
+
+function onRulerBtn() {
+  if (!state.mapInitialized) return;
+
+  if (rulerIsActive()) {
+    rulerStop();
+    rulerBtn.textContent = "📏 Лінійка";
+    rulerBtn.classList.remove("btn--accent");
+    rulerBtn.classList.add("btn--ghost");
+  } else {
+    rulerStart();
+    rulerBtn.textContent = "✕ Зупинити лінійку";
+    rulerBtn.classList.remove("btn--ghost");
+    rulerBtn.classList.add("btn--accent");
+  }
+}
+
+// Escape — зупиняє лінійку
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && rulerIsActive()) {
+    rulerStop();
+    rulerBtn.textContent = "📏 Лінійка";
+    rulerBtn.classList.remove("btn--accent");
+    rulerBtn.classList.add("btn--ghost");
+  }
+});
 
 // ==============================
 // Центральна функція обробки
