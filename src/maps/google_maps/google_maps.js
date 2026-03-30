@@ -3,6 +3,8 @@ import { flattenCoords } from "../../utilities/utilities";
 let map;
 let polygons = [];
 let markers = [];
+let polygonLabels = []; // підписи сторін та площі ділянок
+let labelsVisible = true; // стан видимості підписів
 let infoWindow;
 
 const rulerSettings = {
@@ -94,6 +96,81 @@ export function stopWatchingLocation() {
 }
 
 // ===============================
+// 🔹 Підписи для ділянки
+// ===============================
+function formatDistancePoly(meters) {
+  if (meters >= 1000) return `${(meters / 1000).toFixed(3)} км`;
+  return `${meters.toFixed(1)} м`;
+}
+
+function formatAreaPoly(sqMeters) {
+  if (sqMeters >= 10000) return `${(sqMeters / 10000).toFixed(4)} га`;
+  return `${sqMeters.toFixed(1)} м²`;
+}
+
+function midpointPoly(a, b) {
+  return { lat: (a.lat + b.lat) / 2, lng: (a.lng + b.lng) / 2 };
+}
+
+function createPolygonLabelElement(text, isArea = false) {
+  const div = document.createElement("div");
+  div.style.cssText = [
+    "background:rgba(15,17,23,0.82)",
+    "color:" + (isArea ? "#ff8af3" : "#ffcbfa"),
+    "font-family:'JetBrains Mono',monospace",
+    "font-size:" + (isArea ? "13px" : "11px"),
+    "font-weight:" + (isArea ? "700" : "500"),
+    "padding:2px 6px",
+    "border-radius:4px",
+    "border:1px solid " + (isArea ? "#00d4aa55" : "#2a304088"),
+    "white-space:nowrap",
+    "pointer-events:none",
+    "box-shadow:0 1px 6px rgba(0,0,0,0.45)",
+  ].join(";");
+  div.textContent = text;
+  return div;
+}
+
+async function addPolygonLabels(ring) {
+  // ring — масив {lat, lng}
+  if (!ring || ring.length < 2) return;
+  const spherical = google.maps.geometry.spherical;
+
+  const n = ring.length;
+
+  // підписи кожної сторони
+  for (let i = 0; i < n; i++) {
+    const a = ring[i];
+    const b = ring[(i + 1) % n];
+    const dist = spherical.computeDistanceBetween(
+      new google.maps.LatLng(a),
+      new google.maps.LatLng(b),
+    );
+    const label = new google.maps.marker.AdvancedMarkerElement({
+      map: labelsVisible ? map : null,
+      position: midpointPoly(a, b),
+      content: createPolygonLabelElement(formatDistancePoly(dist)),
+    });
+    polygonLabels.push(label);
+  }
+
+  // підпис площі в центрі
+  const area = spherical.computeArea(
+    ring.map((p) => new google.maps.LatLng(p)),
+  );
+  const center = ring.reduce(
+    (acc, p) => ({ lat: acc.lat + p.lat / n, lng: acc.lng + p.lng / n }),
+    { lat: 0, lng: 0 },
+  );
+  const areaLabel = new google.maps.marker.AdvancedMarkerElement({
+    map: labelsVisible ? map : null,
+    position: center,
+    content: createPolygonLabelElement(formatAreaPoly(area), true),
+  });
+  polygonLabels.push(areaLabel);
+}
+
+// ===============================
 // 🔹 Малювання один MultiPolygon
 // ===============================
 export async function drawMultiPolygon(
@@ -116,14 +193,8 @@ export async function drawMultiPolygon(
     polygon.setMap(map);
     polygons.push(polygon);
 
-    // 🔹 Клік → координати
-    // polygon.addListener("click", (event) => {
-    //   infoWindow.setContent(
-    //     `${event.latLng.lat().toFixed(8)}, ${event.latLng.lng().toFixed(8)}`,
-    //   );
-    //   infoWindow.setPosition(event.latLng);
-    //   infoWindow.open(map);
-    // });
+    // 🔹 Підписи довжин сторін та площі
+    polygonCoords.forEach((ring) => addPolygonLabels(ring));
 
     // 🔹 Нумерація точок
     flattenWGSArray.forEach(([lat, lng], index) => {
@@ -135,11 +206,6 @@ export async function drawMultiPolygon(
 
       markers.push(marker);
     });
-
-    // // 🔹 Площа
-    // const area = google.maps.geometry.spherical.computeArea(polygon.getPath());
-
-    // console.log(`Площа полігону ${polygonIndex + 1}: ${area.toFixed(2)} м²`);
   });
 }
 
@@ -236,8 +302,19 @@ export function fitBoundsMulti(coords) {
 export function clearMap() {
   markers.forEach((m) => m.setMap(null));
   polygons.forEach((p) => p.setMap(null));
+  polygonLabels.forEach((l) => l.setMap(null));
   markers = [];
   polygons = [];
+  polygonLabels = [];
+}
+
+// ===============================
+// 🔹 Вмикання / вимикання підписів
+// ===============================
+export function togglePolygonLabels() {
+  labelsVisible = !labelsVisible;
+  polygonLabels.forEach((l) => l.setMap(labelsVisible ? map : null));
+  return labelsVisible;
 }
 
 // ===============================
@@ -294,18 +371,18 @@ function createLabelElement(text, isArea = false) {
 }
 
 // Маркер-точка (невеликий кружок)
-function createDotElement(isFirst = false) {
-  const div = document.createElement("div");
-  div.style.cssText = [
-    "width:" + (isFirst ? "10px" : "8px"),
-    "height:" + (isFirst ? "10px" : "8px"),
-    "background:" + (isFirst ? "#00d4aa" : "#eef2f8"),
-    "border:2px solid " + (isFirst ? "#00d4aa" : "#0f1117"),
-    "border-radius:50%",
-    "cursor:crosshair",
-  ].join(";");
-  return div;
-}
+// function createDotElement(isFirst = false) {
+//   const div = document.createElement("div");
+//   div.style.cssText = [
+//     "width:" + (isFirst ? "10px" : "8px"),
+//     "height:" + (isFirst ? "10px" : "8px"),
+//     "background:" + (isFirst ? "#00d4aa" : "#eef2f8"),
+//     "border:2px solid " + (isFirst ? "#00d4aa" : "#0f1117"),
+//     "border-radius:50%",
+//     "cursor:crosshair",
+//   ].join(";");
+//   return div;
+// }
 
 // Оновити тільки лінії та підписи (без перестворення маркерів) — для drag
 function rulerUpdateLines() {
@@ -729,4 +806,11 @@ function snapToExisting(point, points) {
   }
 
   return point;
+}
+
+export function toggleInsertMode() {
+  rulerSettings.insertMode =
+    rulerSettings.insertMode === "segment" ? "end" : "segment";
+
+  console.log("Mode:", rulerSettings.insertMode);
 }

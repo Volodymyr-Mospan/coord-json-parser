@@ -10,6 +10,8 @@ import {
   rulerStart,
   rulerStop,
   rulerIsActive,
+  toggleInsertMode,
+  togglePolygonLabels,
 } from "./maps/google_maps/google_maps.js";
 import { flattenCoords } from "./utilities/utilities.js";
 import { downloadKML, multipleToKML } from "./utilities/saveKML.js";
@@ -34,6 +36,8 @@ const centerOnAreaBtn = document.getElementById("centerOnArea");
 const mapEmpty = document.getElementById("mapEmpty");
 const mapG = document.getElementById("mapG");
 const rulerBtn = document.getElementById("rulerBtn");
+const toggleBtn = document.getElementById("rulerMethod");
+const toggleLabelsBtn = document.getElementById("toggleLabelsBtn");
 
 // ==============================
 // Стан застосунку в одному об'єкті
@@ -61,6 +65,8 @@ showMyLocationBtn.addEventListener("click", onShowMyLocationBtn);
 centerOnMeBtn.addEventListener("click", onCenterOnMeBtn);
 centerOnAreaBtn.addEventListener("click", onCenterOnAreaBtn);
 rulerBtn.addEventListener("click", onRulerBtn);
+toggleBtn.addEventListener("click", toggleInsertMode);
+toggleLabelsBtn.addEventListener("click", onToggleLabelsBtn);
 
 // ==============================
 // Handlers
@@ -187,6 +193,18 @@ function onCenterOnAreaBtn() {
   centerOnMeBtn.style.display = "block";
 }
 
+function onToggleLabelsBtn() {
+  if (!state.mapInitialized) return;
+  const visible = togglePolygonLabels();
+  if (visible) {
+    toggleLabelsBtn.classList.remove("btn--accent");
+    toggleLabelsBtn.classList.add("btn--ghost");
+  } else {
+    toggleLabelsBtn.classList.remove("btn--ghost");
+    toggleLabelsBtn.classList.add("btn--accent");
+  }
+}
+
 function onRulerBtn() {
   if (!state.mapInitialized) return;
 
@@ -256,3 +274,5 @@ async function runProcessing() {
   drawAllPolygons(allWgsArrays, Number(firstNum.value));
   fitBoundsMulti(state.firstArrayWGS);
 }
+
+// "color:" + (isArea ? "#ff8af3" : "#ffcbfa"),
