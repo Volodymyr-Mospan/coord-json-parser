@@ -15,8 +15,8 @@
       href="https://fonts.googleapis.com/css2?family=Fira+Sans+Condensed:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap"
       rel="stylesheet"
     />
-    <script type="module" crossorigin src="/coord-json-parser/assets/index-DT9cEAjp.js"></script>
-    <link rel="stylesheet" crossorigin href="/coord-json-parser/assets/index-DY553ljn.css">
+    <script type="module" crossorigin src="/coord-json-parser/assets/index-DTL196hO.js"></script>
+    <link rel="stylesheet" crossorigin href="/coord-json-parser/assets/index-C8MP5MUz.css">
   </head>
   <body>
     <div class="app">
@@ -25,7 +25,7 @@
         <header class="panel__header">
           <span class="panel__logo">⌖</span>
           <span class="panel__title">COORD PARSER</span>
-          <span class="panel__version">v0.3.14</span>
+          <span class="panel__version">v0.3.15</span>
         </header>
 
         <!-- Завантаження файлів -->
@@ -135,8 +135,21 @@
             ⌖ До ділянки
           </button>
 
+          <!-- Лінійка -->
           <button id="rulerBtn" class="btn btn--ghost btn--full">
             📏 Лінійка
+          </button>
+          <!-- Лінійка - Перемикач простановки точок (відносно сигменту / від останньої точки) -->
+          <button
+            id="rulerMethod"
+            class="btn btn--ghost btn--full"
+            style="display: none"
+          >
+            🧈 Перемикач
+          </button>
+          <!-- Підписи довжин сторін та площі -->
+          <button id="toggleLabelsBtn" class="btn btn--ghost btn--full">
+            🏷 Підписи
           </button>
         </section>
 
@@ -146,8 +159,6 @@
             🗺 Показати мапу
           </button>
         </section>
-
-        <!-- Лінійка -->
 
         <footer class="panel__footer">Моспан Володимир</footer>
       </aside>
@@ -188,6 +199,6 @@
         ></pre>
       </div>
     </div>
-
+
   </body>
 </html>
