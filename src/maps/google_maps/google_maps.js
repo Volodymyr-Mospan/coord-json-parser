@@ -91,24 +91,27 @@ export function stopWatchingLocation() {
   if (watchId !== null) {
     navigator.geolocation.clearWatch(watchId);
     watchId = null;
-    // console.log("🛑 Відстеження геолокації зупинено");
+  }
+  if (userMarker) {
+    userMarker.map = null;
+    userMarker = null;
   }
 }
 
 // ===============================
-// 🔹 Підписи для ділянки
+// 🔹 Спільні утиліти форматування
 // ===============================
-function formatDistancePoly(meters) {
+function formatDistance(meters) {
   if (meters >= 1000) return `${(meters / 1000).toFixed(3)} км`;
   return `${meters.toFixed(1)} м`;
 }
 
-function formatAreaPoly(sqMeters) {
+function formatArea(sqMeters) {
   if (sqMeters >= 10000) return `${(sqMeters / 10000).toFixed(4)} га`;
   return `${sqMeters.toFixed(1)} м²`;
 }
 
-function midpointPoly(a, b) {
+function midpoint(a, b) {
   return { lat: (a.lat + b.lat) / 2, lng: (a.lng + b.lng) / 2 };
 }
 
@@ -148,8 +151,8 @@ async function addPolygonLabels(ring) {
     );
     const label = new google.maps.marker.AdvancedMarkerElement({
       map: labelsVisible ? map : null,
-      position: midpointPoly(a, b),
-      content: createPolygonLabelElement(formatDistancePoly(dist)),
+      position: midpoint(a, b),
+      content: createPolygonLabelElement(formatDistance(dist)),
     });
     polygonLabels.push(label);
   }
@@ -165,7 +168,7 @@ async function addPolygonLabels(ring) {
   const areaLabel = new google.maps.marker.AdvancedMarkerElement({
     map: labelsVisible ? map : null,
     position: center,
-    content: createPolygonLabelElement(formatAreaPoly(area), true),
+    content: createPolygonLabelElement(formatArea(area), true),
   });
   polygonLabels.push(areaLabel);
 }
@@ -179,6 +182,16 @@ export async function drawMultiPolygon(
   starterNum,
 ) {
   const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
+
+  // 🔹 Нумерація точок — ОДИН раз для всього MultiPolygon
+  flattenWGSArray.forEach(([lat, lng], index) => {
+    const marker = new AdvancedMarkerElement({
+      map,
+      position: { lat, lng },
+      content: createMarkerLabel(index + starterNum),
+    });
+    markers.push(marker);
+  });
 
   multiPolygonCoords.forEach((polygonCoords) => {
     const polygon = new google.maps.Polygon({
@@ -195,17 +208,6 @@ export async function drawMultiPolygon(
 
     // 🔹 Підписи довжин сторін та площі
     polygonCoords.forEach((ring) => addPolygonLabels(ring));
-
-    // 🔹 Нумерація точок
-    flattenWGSArray.forEach(([lat, lng], index) => {
-      const marker = new AdvancedMarkerElement({
-        map,
-        position: { lat, lng },
-        content: createMarkerLabel(index + starterNum),
-      });
-
-      markers.push(marker);
-    });
   });
 }
 
@@ -329,26 +331,6 @@ let rulerDots = []; // маркери-точки
 let rulerLabels = []; // підписи відрізків
 let rulerAreaLabel = null; // підпис площі
 let rulerClickListener = null;
-
-// Форматування відстані
-function formatDistance(meters) {
-  if (meters >= 1000) return `${(meters / 1000).toFixed(3)} км`;
-  return `${meters.toFixed(1)} м`;
-}
-
-// Форматування площі
-function formatArea(sqMeters) {
-  if (sqMeters >= 10000) return `${(sqMeters / 10000).toFixed(4)} га`;
-  return `${sqMeters.toFixed(1)} м²`;
-}
-
-// Середина відрізку
-function midpoint(a, b) {
-  return {
-    lat: (a.lat + b.lat) / 2,
-    lng: (a.lng + b.lng) / 2,
-  };
-}
 
 // DOM-підпис для AdvancedMarkerElement
 function createLabelElement(text, isArea = false) {
@@ -811,6 +793,4 @@ function snapToExisting(point, points) {
 export function toggleInsertMode() {
   rulerSettings.insertMode =
     rulerSettings.insertMode === "segment" ? "end" : "segment";
-
-  console.log("Mode:", rulerSettings.insertMode);
 }

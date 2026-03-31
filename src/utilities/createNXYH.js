@@ -1,13 +1,12 @@
-import { deepEqual } from "./utilities/utilities";
-
 export function createNXYH(coordArray, starterNum, isXY) {
   if (!coordArray || !coordArray.length) {
     return [];
   }
 
-  const coords = deepEqual(coordArray[0], coordArray[coordArray.length - 1])
-    ? coordArray.slice(0, -1)
-    : coordArray;
+  const first = coordArray[0];
+  const last = coordArray[coordArray.length - 1];
+  const isClosed = first[0] === last[0] && first[1] === last[1];
+  const coords = isClosed ? coordArray.slice(0, -1) : coordArray;
 
   return coords.map((point, i) => {
     const x = point[isXY ? 1 : 0].toFixed(3);

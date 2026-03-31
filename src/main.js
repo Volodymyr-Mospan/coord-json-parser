@@ -117,6 +117,7 @@ async function onCopyBtn(e) {
 
 async function onNavigateBtn() {
   const text = coordOfArea.textContent;
+  if (!text || !text.includes(", ")) return;
   const [lat, lng] = text.split(", ");
   const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
   const isAndroid = /Android/i.test(navigator.userAgent);
@@ -252,15 +253,12 @@ async function runProcessing() {
 
   const flattenWGSArray = flattenCoords(state.firstArrayWGS);
 
-  const averageWGS = flattenWGSArray.reduce(
-    ([latAcc, lonAcc], [lat, lon], i) => {
-      if (i < flattenWGSArray.length - 1) return [latAcc + lat, lonAcc + lon];
-      return [
-        (latAcc + lat) / flattenWGSArray.length,
-        (lonAcc + lon) / flattenWGSArray.length,
-      ];
-    },
-  );
+  const averageWGS = flattenWGSArray
+    .reduce(
+      ([latAcc, lonAcc], [lat, lon]) => [latAcc + lat, lonAcc + lon],
+      [0, 0],
+    )
+    .map((v) => v / flattenWGSArray.length);
 
   coordOfArea.textContent = averageWGS
     .map((coord) => coord.toFixed(8))
@@ -274,5 +272,3 @@ async function runProcessing() {
   drawAllPolygons(allWgsArrays, Number(firstNum.value));
   fitBoundsMulti(state.firstArrayWGS);
 }
-
-// "color:" + (isArea ? "#ff8af3" : "#ffcbfa"),

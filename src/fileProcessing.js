@@ -1,4 +1,4 @@
-import { createNXYH } from "./createNXYH.js";
+import { createNXYH } from "./utilities/createNXYH.js";
 import { sk63ToWgs84 } from "./sc_63_to_WGS/transformFunctions.js";
 import { flattenCoords, getFilenameFromFile } from "./utilities/utilities.js";
 
