@@ -4,8 +4,10 @@ import { POINTSz1 } from "./sc63_zone1";
 import { POINTSz2 } from "./sc63_zone2";
 import { POINTSz3 } from "./sc63_zone3";
 import { POINTSz4 } from "./sc63_zone4";
+import { POINTSz5 } from "./sc63_zone5";
 import { POINTSsk42loc85 } from "./sc42_loc85";
 import { deepEqual } from "../utilities/utilities";
+import { POINTSz6 } from "./sc63_zone6";
 
 proj4.defs("WGS84", "+proj=longlat +datum=WGS84 +no_defs");
 
@@ -105,6 +107,14 @@ export function sk63ToWgs84(coordArray, coordSys) {
       case "4":
         proj4ZoneParam = "SK63_ZONE4";
         helmertParams = preparationHelmertParams(POINTSz4, proj4ZoneParam);
+        break;
+      case "5":
+        proj4ZoneParam = "SK63_ZONE5";
+        helmertParams = preparationHelmertParams(POINTSz5, proj4ZoneParam);
+        break;
+      case "6":
+        proj4ZoneParam = "SK63_ZONE6";
+        helmertParams = preparationHelmertParams(POINTSz6, proj4ZoneParam);
         break;
       default:
         console.error("Невідома зона СК-63:", numberOfZone);

@@ -6,8 +6,8 @@ const newJson = {
   coordinates: [[[]]], // coordinates: [[[["Y", "X"]]]],
   properties: { coordSys: "SC63" },
 };
-for (let x = 4975000; x < 5775000; x += 10000) {
-  for (let y = 3180000; y < 3430000; y += 10000) {
+for (let x = 5140000; x <= 5600000; x += 10000) {
+  for (let y = 6184000; y <= 6414000; y += 10000) {
     newJson.coordinates[0][0].push([y, x]);
   }
 }
@@ -27,12 +27,6 @@ for (let x = 4975000; x < 5775000; x += 10000) {
 //     properties: { coordSys: "SC63" },
 //   },
 // };
-
-// for (let x = 5275000; x < 5775000; x += 10000) {
-//   for (let y = 2185000; y < 2425000; y += 10000) {
-//     newJson.geometry.coordinates[0].push([y, x]);
-//   }
-// }
 
 devBtn.addEventListener("click", onDevBtn);
 
