@@ -33,6 +33,85 @@ export async function initMap() {
 
 let userMarker;
 let watchId = null;
+let accuracyCircle = null; // коло точності геолокації
+
+// 🔹 Перпендикуляри до найближчих сторін ділянки
+let proximityLines = []; // Polyline[]
+let proximityLabels = []; // AdvancedMarkerElement[]
+
+// ===============================
+// 🔹 Перпендикуляри до 2 найближчих сторін ділянки
+// ===============================
+function clearProximityLines() {
+  proximityLines.forEach((l) => l.setMap(null));
+  proximityLabels.forEach((l) => l.setMap(null));
+  proximityLines = [];
+  proximityLabels = [];
+}
+
+function drawProximityLines(userPos) {
+  clearProximityLines();
+
+  // Беремо перший полігон першого MultiPolygon
+  if (!polygons.length) return;
+  const firstPolygon = polygons[0];
+  const paths = firstPolygon.getPaths();
+  if (!paths || !paths.getLength()) return;
+
+  // Зовнішнє кільце — масив {lat, lng}
+  const ring = [];
+  paths.getAt(0).forEach((latLng) => {
+    ring.push({ lat: latLng.lat(), lng: latLng.lng() });
+  });
+  if (ring.length < 2) return;
+
+  const spherical = google.maps.geometry.spherical;
+  const n = ring.length;
+
+  // Знаходимо 2 найближчі сегменти (з проекцією точки на відрізок)
+  const segments = [];
+  for (let i = 0; i < n; i++) {
+    const a = ring[i];
+    const b = ring[(i + 1) % n];
+    const proj = projectPointOnSegment(userPos, a, b);
+    const dist = spherical.computeDistanceBetween(
+      new google.maps.LatLng(userPos),
+      new google.maps.LatLng(proj),
+    );
+    segments.push({ a, b, proj, dist });
+  }
+
+  // Сортуємо за відстанню, беремо 2 найближчі
+  segments.sort((x, y) => x.dist - y.dist);
+  const closest = segments.slice(0, 2);
+
+  // Малюємо перпендикуляр для кожного
+  closest.forEach(({ proj, dist }) => {
+    const line = new google.maps.Polyline({
+      path: [userPos, proj],
+      strokeColor: "#00d4aa",
+      strokeWeight: 2,
+      strokeOpacity: 0.85,
+      icons: [
+        {
+          icon: { path: google.maps.SymbolPath.FORWARD_OPEN_ARROW, scale: 3 },
+          offset: "100%",
+        },
+      ],
+      map,
+    });
+    proximityLines.push(line);
+
+    // Підпис відстані посередині лінії
+    const labelPos = midpoint(userPos, proj);
+    const label = new google.maps.marker.AdvancedMarkerElement({
+      map,
+      position: labelPos,
+      content: createLabelElement(formatDistance(dist)),
+    });
+    proximityLabels.push(label);
+  });
+}
 
 export async function startWatchingLocation() {
   if (!navigator.geolocation) {
@@ -61,20 +140,40 @@ export async function startWatchingLocation() {
         lat: position.coords.latitude,
         lng: position.coords.longitude,
       };
+      const accuracy = position.coords.accuracy; // метри
+      // console.log(accuracy);
 
       if (userMarker) {
-        userMarker.position = userPos; // оновлюємо позицію
+        userMarker.position = userPos;
       } else {
         userMarker = new AdvancedMarkerElement({
           map,
           position: userPos,
-          content: userMarkerElement, // передаємо DOM Node
+          content: userMarkerElement,
           title: "Ви тут!",
         });
       }
 
+      // Оновлюємо або створюємо коло точності
+      if (accuracyCircle) {
+        accuracyCircle.setCenter(userPos);
+        accuracyCircle.setRadius(accuracy);
+      } else {
+        accuracyCircle = new google.maps.Circle({
+          map,
+          center: userPos,
+          radius: accuracy,
+          strokeColor: "#4a90d9",
+          strokeOpacity: 0.6,
+          strokeWeight: 1,
+          fillColor: "#4a90d9",
+          fillOpacity: 0.12,
+          clickable: false,
+        });
+      }
+
+      drawProximityLines(userPos);
       map.setCenter(userPos);
-      // map.setZoom(18);
     },
     (error) => {
       alert("Не вдалося отримати вашу геолокацію: " + error.message);
@@ -96,6 +195,11 @@ export function stopWatchingLocation() {
     userMarker.map = null;
     userMarker = null;
   }
+  if (accuracyCircle) {
+    accuracyCircle.setMap(null);
+    accuracyCircle = null;
+  }
+  clearProximityLines();
 }
 
 // ===============================
@@ -308,6 +412,11 @@ export function clearMap() {
   markers = [];
   polygons = [];
   polygonLabels = [];
+  if (accuracyCircle) {
+    accuracyCircle.setMap(null);
+    accuracyCircle = null;
+  }
+  clearProximityLines();
 }
 
 // ===============================
