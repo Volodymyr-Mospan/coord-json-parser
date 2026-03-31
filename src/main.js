@@ -12,6 +12,7 @@ import {
   rulerIsActive,
   toggleInsertMode,
   togglePolygonLabels,
+  toggleProximityLines,
 } from "./maps/google_maps/google_maps.js";
 import { flattenCoords } from "./utilities/utilities.js";
 import { downloadKML, multipleToKML } from "./utilities/saveKML.js";
@@ -38,6 +39,7 @@ const mapG = document.getElementById("mapG");
 const rulerBtn = document.getElementById("rulerBtn");
 const toggleBtn = document.getElementById("rulerMethod");
 const toggleLabelsBtn = document.getElementById("toggleLabelsBtn");
+const proximityLinesBtn = document.getElementById("proximityLinesBtn");
 
 // ==============================
 // Стан застосунку в одному об'єкті
@@ -67,6 +69,7 @@ centerOnAreaBtn.addEventListener("click", onCenterOnAreaBtn);
 rulerBtn.addEventListener("click", onRulerBtn);
 toggleBtn.addEventListener("click", toggleInsertMode);
 toggleLabelsBtn.addEventListener("click", onToggleLabelsBtn);
+proximityLinesBtn.addEventListener("click", onProximityLinesBtn);
 
 // ==============================
 // Handlers
@@ -203,6 +206,18 @@ function onToggleLabelsBtn() {
   } else {
     toggleLabelsBtn.classList.remove("btn--ghost");
     toggleLabelsBtn.classList.add("btn--accent");
+  }
+}
+
+function onProximityLinesBtn() {
+  if (!state.mapInitialized) return;
+  const active = toggleProximityLines();
+  if (active) {
+    proximityLinesBtn.classList.remove("btn--ghost");
+    proximityLinesBtn.classList.add("btn--accent");
+  } else {
+    proximityLinesBtn.classList.remove("btn--accent");
+    proximityLinesBtn.classList.add("btn--ghost");
   }
 }
 

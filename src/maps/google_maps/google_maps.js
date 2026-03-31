@@ -6,6 +6,7 @@ let markers = [];
 let polygonLabels = []; // підписи сторін та площі ділянок
 let labelsVisible = true; // стан видимості підписів
 let infoWindow;
+let lastUserPos = null;
 
 const rulerSettings = {
   insertMode: "segment", // "segment" | "end"
@@ -40,8 +41,10 @@ let proximityLines = []; // Polyline[]
 let proximityLabels = []; // AdvancedMarkerElement[]
 
 // ===============================
-// 🔹 Перпендикуляри до 2 найближчих сторін ділянки
+// 🔹 Перпендикуляри до сторін ділянки
 // ===============================
+let proximityLinesActive = false; // вмикається окремою кнопкою
+
 function clearProximityLines() {
   proximityLines.forEach((l) => l.setMap(null));
   proximityLabels.forEach((l) => l.setMap(null));
@@ -49,10 +52,24 @@ function clearProximityLines() {
   proximityLabels = [];
 }
 
+// Кут відрізку в градусах відносно північ (0°=північ, за годинниковою)
+function segmentBearing(a, b) {
+  const dLng = b.lng - a.lng;
+  const dLat = b.lat - a.lat;
+  return (Math.atan2(dLng, dLat) * 180) / Math.PI;
+}
+
+// Різниця кутів [-180, 180]
+function angleDiff(alpha, beta) {
+  let d = ((beta - alpha + 180) % 360) - 180;
+  if (d < -180) d += 360;
+  return d;
+}
+
 function drawProximityLines(userPos) {
   clearProximityLines();
+  if (!proximityLinesActive) return;
 
-  // Беремо перший полігон першого MultiPolygon
   if (!polygons.length) return;
   const firstPolygon = polygons[0];
   const paths = firstPolygon.getPaths();
@@ -68,7 +85,7 @@ function drawProximityLines(userPos) {
   const spherical = google.maps.geometry.spherical;
   const n = ring.length;
 
-  // Знаходимо 2 найближчі сегменти (з проекцією точки на відрізок)
+  // Рахуємо відстань від userPos до кожного відрізку (проекція)
   const segments = [];
   for (let i = 0; i < n; i++) {
     const a = ring[i];
@@ -78,17 +95,35 @@ function drawProximityLines(userPos) {
       new google.maps.LatLng(userPos),
       new google.maps.LatLng(proj),
     );
-    segments.push({ a, b, proj, dist });
+    const bearing = segmentBearing(a, b);
+    segments.push({ a, b, proj, dist, bearing });
   }
 
-  // Сортуємо за відстанню, беремо 2 найближчі
+  // 1) Найближчий відрізок
   segments.sort((x, y) => x.dist - y.dist);
-  const closest = segments.slice(0, 2);
+  const first = segments[0];
 
-  // Малюємо перпендикуляр для кожного
-  closest.forEach(({ proj, dist }) => {
+  // 2) З решти — найближчий під кутом 60°–120° до першого
+  //    (тобто приблизно перпендикулярний за напрямком)
+  const rest = segments.slice(1);
+  let second = null;
+  let secondDist = Infinity;
+
+  for (const seg of rest) {
+    const diff = Math.abs(angleDiff(first.bearing, seg.bearing));
+    // перпендикулярні відрізки мають різницю ~90°, враховуємо обидва напрями (90° і 270°≡90°)
+    const perpDiff = Math.min(diff, 180 - diff);
+    if (perpDiff >= 60 && perpDiff <= 120 && seg.dist < secondDist) {
+      secondDist = seg.dist;
+      second = seg;
+    }
+  }
+
+  // Малюємо лінії
+  [first, second].forEach((seg) => {
+    if (!seg) return;
     const line = new google.maps.Polyline({
-      path: [userPos, proj],
+      path: [userPos, seg.proj],
       strokeColor: "#00d4aa",
       strokeWeight: 2,
       strokeOpacity: 0.85,
@@ -102,15 +137,24 @@ function drawProximityLines(userPos) {
     });
     proximityLines.push(line);
 
-    // Підпис відстані посередині лінії
-    const labelPos = midpoint(userPos, proj);
+    const labelPos = midpoint(userPos, seg.proj);
     const label = new google.maps.marker.AdvancedMarkerElement({
       map,
       position: labelPos,
-      content: createLabelElement(formatDistance(dist)),
+      content: createLabelElement(formatDistance(seg.dist)),
     });
     proximityLabels.push(label);
   });
+}
+
+export function toggleProximityLines() {
+  proximityLinesActive = !proximityLinesActive;
+  if (!proximityLinesActive) {
+    clearProximityLines();
+  } else if (lastUserPos) {
+    drawProximityLines(lastUserPos); // 🔥 перемалювати
+  }
+  return proximityLinesActive;
 }
 
 export async function startWatchingLocation() {
@@ -140,8 +184,8 @@ export async function startWatchingLocation() {
         lat: position.coords.latitude,
         lng: position.coords.longitude,
       };
+      lastUserPos = userPos;
       const accuracy = position.coords.accuracy; // метри
-      // console.log(accuracy);
 
       if (userMarker) {
         userMarker.position = userPos;

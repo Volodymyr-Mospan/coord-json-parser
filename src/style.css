@@ -261,6 +261,7 @@ body {
 
 button,
 .btn {
+  min-width: 40px;
   font-family: var(--font-ui);
   font-size: 14px;
   font-weight: 600;
