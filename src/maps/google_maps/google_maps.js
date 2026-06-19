@@ -177,6 +177,7 @@ export async function startWatchingLocation() {
   userMarkerElement.style.backgroundColor = "#00f";
   userMarkerElement.style.border = "2px solid #fff";
   userMarkerElement.style.borderRadius = "50%";
+  userMarkerElement.style.transform = "translateY(50%)";
 
   watchId = navigator.geolocation.watchPosition(
     (position) => {
