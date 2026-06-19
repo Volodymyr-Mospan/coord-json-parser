@@ -600,16 +600,18 @@ button,
   /* Секція геолокації поверх карти */
   .panel__section--geolocation.on-map {
     display: flex !important;
+    /* flex-direction: row; */
     position: fixed;
+    flex-wrap: wrap;
     bottom: 24px;
-    left: 50%;
+    left: 42%;
     transform: translateX(-50%);
     z-index: 600;
     border: none;
     background: transparent;
     padding: 0;
     gap: 10px;
-    width: auto;
+    width: 80%;
   }
 
   .panel__section--geolocation.on-map .btn {

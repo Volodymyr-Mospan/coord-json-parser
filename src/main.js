@@ -231,7 +231,7 @@ function onRulerBtn() {
     rulerBtn.classList.add("btn--ghost");
   } else {
     rulerStart();
-    rulerBtn.textContent = "✕ Зупинити лінійку";
+    rulerBtn.textContent = "📏 Зупинити";
     rulerBtn.classList.remove("btn--ghost");
     rulerBtn.classList.add("btn--accent");
   }
