@@ -617,6 +617,7 @@ button,
   .panel__section--geolocation.on-map .btn {
     box-shadow: 0 2px 16px rgba(0, 0, 0, 0.6);
     backdrop-filter: blur(6px);
+    max-width: 48%;
   }
 
   .output {
