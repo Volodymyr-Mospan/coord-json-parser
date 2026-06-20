@@ -167,6 +167,6 @@ export function sk63ToWgs84(coordArray, coordSys) {
     return { lat: finalLat, lng: finalLng };
   }
 
-  console.log("🚀 ~ sk63ToWgs84 ~ wgsMultiPolygon:", wgsMultiPolygon);
+  // console.log("🚀 ~ sk63ToWgs84 ~ wgsMultiPolygon:", wgsMultiPolygon);
   return wgsMultiPolygon;
 }

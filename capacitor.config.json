@@ -1,0 +1,8 @@
+{
+  "appId": "io.github.volodymyrmospan.coordjsonparser",
+  "appName": "coordJsonParser",
+  "webDir": "dist",
+  "ios": {
+    "contentInset": "automatic"
+  }
+}
