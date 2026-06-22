@@ -89,5 +89,9 @@
             </dict>
         </dict>
     </array>
+    <key>LSSupportsOpeningDocumentsInPlace</key>
+    <false/>
+    <key>UIFileSharingEnabled</key>
+    <false/>
 </dict>
 </plist>
