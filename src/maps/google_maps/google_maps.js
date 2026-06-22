@@ -21,7 +21,16 @@ export async function initMap() {
   map = new Map(document.getElementById("mapG"), {
     mapId: "aeabb86f4d1ecf8ae9f0c27",
     gestureHandling: "greedy",
-    mapTypeId: "satellite",
+    mapTypeId: "hybrid",
+
+    mapTypeControlOptions: {
+      mapTypeIds: ["roadmap", "satellite", "hybrid"],
+    },
+
+    fullscreenControl: false, // кнопка розгортання на весь екран
+    zoomControl: false, // кнопки +/- зуму (якщо є)
+    streetViewControl: false, // жовтий чоловічок (Pegman)
+    rotateControl: false, // кнопка повороту
   });
   infoWindow = new google.maps.InfoWindow();
 
