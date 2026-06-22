@@ -16,6 +16,7 @@ import {
 } from "./maps/google_maps/google_maps.js";
 import { flattenCoords } from "./utilities/utilities.js";
 import { downloadKML, multipleToKML } from "./utilities/saveKML.js";
+import { Geolocation } from "@capacitor/geolocation";
 
 // ==============================
 // DOM
@@ -287,3 +288,59 @@ async function runProcessing() {
   drawAllPolygons(allWgsArrays, Number(firstNum.value));
   fitBoundsMulti(state.firstArrayWGS);
 }
+
+// ==============================
+// Обробка файлу відкритого через iOS "Відкрити в..."
+// ==============================
+window.addEventListener("jsonFileOpened", async (event) => {
+  try {
+    // Створюємо синтетичний File об'єкт з рядка —
+    // щоб processAllFiles отримав те саме, що й при виборі через <input>
+    const jsonString = event.detail;
+    const blob = new Blob([jsonString], { type: "application/json" });
+    const file = new File([blob], "opened.json", { type: "application/json" });
+
+    state.files = [file];
+
+    displayAtributes.forEach((el) => (el.style.display = ""));
+    if (mapEmpty) mapEmpty.style.display = "none";
+    if (mapG) mapG.style.display = "block";
+
+    await runProcessing();
+
+    dropZone.classList.add("downloaded");
+  } catch (err) {
+    console.error("Помилка обробки вхідного JSON файлу:", err);
+    alert("Не вдалось обробити файл: " + err.message);
+  }
+});
+
+// ==============================
+// Geolocation
+// ==============================
+// Запит дозволу
+const requestPermission = async () => {
+  const permission = await Geolocation.requestPermissions();
+  console.log(permission); // granted / denied / prompt
+};
+
+// Отримати поточне місце
+const getCurrentPosition = async () => {
+  try {
+    const position = await Geolocation.getCurrentPosition({
+      enableHighAccuracy: true, // GPS, а не лише Wi-Fi/стільниковий
+      timeout: 10000, // 10 секунд максимум
+    });
+
+    const { latitude, longitude, accuracy } = position.coords;
+    console.log({ latitude, longitude, accuracy });
+  } catch (err) {
+    console.error("Геолокація недоступна:", err);
+  }
+};
+
+(async () => {
+  if (window.Capacitor?.isNativePlatform?.()) {
+    await requestPermission();
+  }
+})();
